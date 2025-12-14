@@ -1,0 +1,32 @@
+import { v2 as cloudinary } from 'cloudinary';
+
+const cloudinaryConfig = process.env.CLOUDINARY_URL
+  ? undefined
+  : {
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    };
+
+if (cloudinaryConfig) {
+  cloudinary.config(cloudinaryConfig);
+}
+
+export default cloudinary;
+
+export async function signUploadRequest(folder: string) {
+  const timestamp = Math.round((new Date).getTime() / 1000);
+  // Retrieve secret from config (handles both env var strategies)
+  const apiSecret = cloudinary.config().api_secret || process.env.CLOUDINARY_API_SECRET;
+  
+  if (!apiSecret) {
+    throw new Error("Cloudinary API Secret not found");
+  }
+
+  const signature = cloudinary.utils.api_sign_request({
+    timestamp: timestamp,
+    folder: folder,
+  }, apiSecret);
+  
+  return { timestamp, signature };
+}

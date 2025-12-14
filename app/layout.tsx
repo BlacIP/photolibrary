@@ -7,6 +7,7 @@ import { cn } from '@/utils/cn';
 import { Provider as TooltipProvider } from '@/components/ui/tooltip';
 import { NotificationProvider } from '@/components/ui/notification-provider';
 import Header from '@/components/header';
+import { ToolbarSetup } from '@/components/ToolbarSetup';
 
 const inter = FontSans({
   subsets: ['latin'],
@@ -42,6 +43,7 @@ export default function RootLayout({
               <Header />
               <main className='flex flex-1 flex-col'>{children}</main>
             </div>
+            <ToolbarSetup />
           </TooltipProvider>
         </ThemeProvider>
         <NotificationProvider />
