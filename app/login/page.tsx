@@ -27,7 +27,7 @@ export default function LoginPage() {
         router.push('/admin');
         router.refresh();
       } else {
-        const data = await res.json();
+        // const data = await res.json();
       }
     } catch {
       setError('An error occurred. Please try again.');

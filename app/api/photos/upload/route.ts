@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const buffer = new Uint8Array(arrayBuffer);
 
     // Upload to Cloudinary
-    const result = await new Promise<any>((resolve, reject) => {
+    const result = await new Promise<{ secure_url: string; public_id: string }>((resolve, reject) => {
       cloudinary.uploader.upload_stream(
         {
           folder: `photolibrary/${clientId}`,
