@@ -33,6 +33,7 @@ export default function SettingsPage() {
         if (res.status === 403) setError('Access Denied. Super Admin only.');
       }
     } catch (err) {
+      console.error(err);
       setError('Failed to load users');
     } finally {
       setLoading(false);

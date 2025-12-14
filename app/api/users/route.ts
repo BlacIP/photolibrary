@@ -1,6 +1,6 @@
 import { pool } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
-import { encrypt, decrypt, hash } from '@/lib/auth';
+import { decrypt, hash } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
 async function getSessionUser() {
@@ -8,13 +8,13 @@ async function getSessionUser() {
   if (!session) return null;
   try {
     const payload = await decrypt(session);
-    return payload.user;
+    return (payload as any).user;
   } catch {
     return null;
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const currentUser = await getSessionUser();
   if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
     const { rows } = await pool.query('SELECT id, email, role, created_at FROM users ORDER BY created_at DESC');
     return NextResponse.json(rows);
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
 }
@@ -57,8 +58,8 @@ export async function POST(req: NextRequest) {
     );
 
     return NextResponse.json({ id, email, role: 'ADMIN' });
-  } catch (error: any) {
-    if (error.code === '23505') { // Unique violation
+  } catch (error) {
+    if ((error as any).code === '23505') { // Unique violation
         return NextResponse.json({ error: 'User already exists' }, { status: 409 });
     }
     console.error('Create user error:', error);

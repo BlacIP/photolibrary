@@ -60,10 +60,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(mappedPhoto);
   } catch (error) {
-    console.error('Error uploading photo:', error);
-    return NextResponse.json(
-      { error: 'Failed to upload photo' },
-      { status: 500 }
-    );
+    console.error('Upload error:', error);
+    return NextResponse.json({ error: 'Upload failed', details: (error as Error).message }, { status: 500 });
   }
 }

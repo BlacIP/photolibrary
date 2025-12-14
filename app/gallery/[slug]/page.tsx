@@ -1,7 +1,6 @@
 import { pool } from '@/lib/db';
 import { RiDownloadLine } from '@remixicon/react';
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 

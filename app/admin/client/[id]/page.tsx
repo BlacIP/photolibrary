@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { format } from 'date-fns';
 import { RiUploadCloud2Line, RiShareBoxLine, RiDownloadLine, RiCheckLine, RiLoader4Line } from '@remixicon/react';
 import * as Modal from '@/components/ui/modal';
@@ -35,7 +34,7 @@ export default function ClientDetailPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
 
-  const fetchClient = async () => {
+  const fetchClient = useCallback(async () => {
     try {
       const res = await fetch(`/api/clients/${id}`);
       if (res.ok) {
@@ -45,11 +44,11 @@ export default function ClientDetailPage() {
     } catch (err) {
       console.error(err);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     if (id) fetchClient();
-  }, [id]);
+  }, [id, fetchClient]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
