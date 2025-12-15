@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { format } from 'date-fns';
-import { RiUploadCloud2Line, RiShareBoxLine, RiDownloadLine, RiCheckLine, RiLoader4Line, RiStarLine, RiDeleteBinLine } from '@remixicon/react';
+import { RiUploadCloud2Line, RiShareBoxLine, RiDownloadLine, RiCheckLine, RiLoader4Line, RiStarLine, RiDeleteBinLine, RiCloseLine } from '@remixicon/react';
 import * as Modal from '@/components/ui/modal';
 import * as ProgressBar from '@/components/ui/progress-bar';
 
@@ -54,27 +54,48 @@ export default function ClientDetailPage() {
   const [headerMedia, setHeaderMedia] = useState<{ url: string | null; type: 'image' | 'video' | null }>({ url: null, type: null });
   const [updatingHeader, setUpdatingHeader] = useState(false);
 
+
+  // Alert & Confirm State
+  const [alertState, setAlertState] = useState<{ open: boolean; title: string; message: string }>({ open: false, title: '', message: '' });
+  const [confirmState, setConfirmState] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void }>({ open: false, title: '', message: '', onConfirm: () => {} });
+
+  const showAlert = (title: string, message: string) => {
+    setAlertState({ open: true, title, message });
+  };
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setConfirmState({ open: true, title, message, onConfirm });
+  };
+
+  // Lightbox State
+  const [lightbox, setLightbox] = useState<{ open: boolean; url: string | null; type: 'image' | 'video' } | null>(null);
+
   const handleUpdateStatus = async (newStatus: string) => {
     if (!client) return;
-    if (newStatus === 'DELETED') {
-        if (!confirm('Are you sure you want to delete this client? The public link will show a "Under Construction" page.')) return;
-    }
     
-    try {
-        const res = await fetch(`/api/clients/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus }),
-        });
-        if (res.ok) {
-            setClient({ ...client, status: newStatus as any });
-            if (newStatus === 'DELETED') {
-                 alert('Client deleted (Soft Delete). Public link is now disabled.');
+    const performUpdate = async () => {
+        try {
+            const res = await fetch(`/api/clients/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus }),
+            });
+            if (res.ok) {
+                setClient({ ...client, status: newStatus as any });
+                if (newStatus === 'DELETED') {
+                     showAlert('Success', 'Client deleted (Soft Delete). Public link is now disabled.');
+                }
             }
+        } catch (e) {
+            console.error(e);
+            showAlert('Error', 'Failed to update status');
         }
-    } catch (e) {
-        console.error(e);
-        alert('Failed to update status');
+    };
+
+    if (newStatus === 'DELETED') {
+        showConfirm('Delete Client?', 'Are you sure you want to delete this client? The public link will show a "Under Construction" page.', performUpdate);
+    } else {
+        await performUpdate();
     }
   };
 
@@ -83,15 +104,15 @@ export default function ClientDetailPage() {
     try {
         const res = await fetch(`/api/clients/${id}`, {
              method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: editName, subheading: editSubheading, eventDate: editDate }),
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ name: editName, subheading: editSubheading, eventDate: editDate }),
         });
         if (res.ok) {
             setClient(prev => prev ? ({ ...prev, name: editName, subheading: editSubheading, eventDate: editDate }) : null);
             setEditing(false);
         }
     } catch {
-        alert('Failed to update client');
+        showAlert('Error', 'Failed to update client');
     } finally {
         setSavingEdit(false);
     }
@@ -107,8 +128,6 @@ export default function ClientDetailPage() {
   };
 
   // Fetch client details
-
-  // Function to fetch client details
   const fetchClient = useCallback(async () => {
     try {
       const res = await fetch(`/api/clients/${id}`);
@@ -131,26 +150,25 @@ export default function ClientDetailPage() {
     fetchClient();
   }, [fetchClient]);
 
-
-
   const removeHeaderMedia = async () => {
-    if(!confirm('Remove header media?')) return;
-    setUpdatingHeader(true);
-    try {
-        await fetch(`/api/clients/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                headerMediaUrl: null, 
-                headerMediaType: null 
-            }),
-        });
-        setHeaderMedia({ url: null, type: null });
-    } catch {
-        alert('Failed to remove header');
-    } finally {
-        setUpdatingHeader(false);
-    }
+    showConfirm('Remove Header?', 'Are you sure you want to remove the header media?', async () => {
+        setUpdatingHeader(true);
+        try {
+            await fetch(`/api/clients/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    headerMediaUrl: null, 
+                    headerMediaType: null 
+                }),
+            });
+            setHeaderMedia({ url: null, type: null });
+        } catch {
+            showAlert('Error', 'Failed to remove header');
+        } finally {
+            setUpdatingHeader(false);
+        }
+    });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -170,73 +188,74 @@ export default function ClientDetailPage() {
         }
     });
 
+    const startUpload = async (filesToUpload: File[]) => {
+        setTotalFiles(filesToUpload.length);
+        setProgress(0);
+        setUploading(true);
+        
+        // Batch processing helper
+        const BATCH_SIZE = 3;
+        const processBatch = async (files: File[]) => {
+           for (let i = 0; i < files.length; i += BATCH_SIZE) {
+             const chunk = files.slice(i, i + BATCH_SIZE);
+             await Promise.all(chunk.map(async (file) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('clientId', id);
+
+                try {
+                    const res = await fetch('/api/photos/upload', {
+                    method: 'POST',
+                    body: formData,
+                    });
+                    if (!res.ok) {
+                        const data = await res.json();
+                        throw new Error(data.error || 'Upload failed');
+                    }
+                } catch (err: any) {
+                    console.error('Upload failed for', file.name, err);
+                    errors.push(`${file.name}: ${err.message}`);
+                } finally {
+                    setProgress((prev) => prev + 1);
+                }
+             }));
+           }
+        };
+
+        try {
+          await processBatch(filesToUpload);
+          
+          if (errors.length > 0) {
+              const errorMsg = `Some uploads failed:\n${errors.filter(e => !e.includes('File too large')).join('\n')}`;
+              showAlert('Upload Completed with Errors', errorMsg);
+          }
+          // Auto-refresh data after all uploads complete
+          await fetchClient();
+        } catch (error) {
+          console.error("Batch upload error", error);
+        } finally {
+          // Small delay to allow user to see 100% completion
+          setTimeout(() => {
+            setUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            setProgress(0);
+            setTotalFiles(0);
+          }, 800);
+        }
+    };
+
     if (validFiles.length === 0) {
-        alert(`All selected files differ from limits:\n${errors.join('\n')}`);
+        showAlert('Invalid Files', `All selected files differ from limits:\n${errors.join('\n')}`);
         if (fileInputRef.current) fileInputRef.current.value = '';
         return;
     }
 
     if (errors.length > 0) {
-         if(!confirm(`Skipping ${errors.length} large files:\n${errors.join('\n')}\n\nContinue uploading ${validFiles.length} valid files?`)) {
-             if (fileInputRef.current) fileInputRef.current.value = '';
-             return;
-         }
-    }
-    
-    setTotalFiles(validFiles.length);
-    setProgress(0);
-    setUploading(true);
-    
-    // Batch processing helper
-    const BATCH_SIZE = 3;
-    const processBatch = async (files: File[]) => {
-       for (let i = 0; i < files.length; i += BATCH_SIZE) {
-         const chunk = files.slice(i, i + BATCH_SIZE);
-         await Promise.all(chunk.map(async (file) => {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('clientId', id);
-
-            try {
-                const res = await fetch('/api/photos/upload', {
-                method: 'POST',
-                body: formData,
-                });
-                if (!res.ok) {
-                    const data = await res.json();
-                    throw new Error(data.error || 'Upload failed');
-                }
-            } catch (err: any) {
-                console.error('Upload failed for', file.name, err);
-                errors.push(`${file.name}: ${err.message}`);
-            } finally {
-                setProgress((prev) => prev + 1);
-            }
-         }));
-       }
-    };
-
-    try {
-      await processBatch(validFiles);
-      
-      if (errors.length > 0) {
-          // If we had initial size errors, re-alert OR just alert the upload errors.
-          // The initial size errors were already alerted/confirmed.
-          // Only alert NEW upload errors here if any (though errors array was reset? No, let's keep separate arrays or concat)
-           alert(`Some uploads failed during transfer:\n${errors.filter(e => !e.includes('File too large')).join('\n')}`);
-      }
-      // Auto-refresh data after all uploads complete
-      await fetchClient();
-    } catch (error) {
-      console.error("Batch upload error", error);
-    } finally {
-      // Small delay to allow user to see 100% completion
-      setTimeout(() => {
-        setUploading(false);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        setProgress(0);
-        setTotalFiles(0);
-      }, 800);
+         showConfirm('Warning: Some files skipped', `Skipping ${errors.length} large files:\n${errors.join('\n')}\n\nContinue uploading ${validFiles.length} valid files?`, () => {
+             startUpload(validFiles);
+         });
+    } else {
+        startUpload(validFiles);
     }
   };
 
@@ -254,43 +273,43 @@ export default function ClientDetailPage() {
         
         if (res.ok) {
             setHeaderMedia({ url, type: 'image' });
-            alert('Header updated successfully');
+            showAlert('Success', 'Header updated successfully');
         } else {
             const data = await res.json();
-            alert(data.error || 'Failed to update header');
+            showAlert('Error', data.error || 'Failed to update header');
         }
     } catch {
-        alert('Failed to set header');
+        showAlert('Error', 'Failed to set header');
     } finally {
         setUpdatingHeader(false);
     }
   };
 
   const handleDeletePhoto = async (photoId: string) => {
-    if(!confirm('Are you sure you want to delete this photo?')) return;
-    
-    // Store previous state for rollback
-    const previousPhotos = client?.photos;
-    
-    // Optimistic Update
-    setClient(prev => prev ? ({
-        ...prev,
-        photos: prev.photos.filter(p => p.id !== photoId)
-    }) : null);
-
-    try {
-        const res = await fetch(`/api/photos/${photoId}`, {
-            method: 'DELETE',
-        });
+    showConfirm('Delete Photo?', 'Are you sure you want to delete this photo?', async () => {
+        // Store previous state for rollback
+        const previousPhotos = client?.photos;
         
-        if (!res.ok) {
-            throw new Error('Failed to delete');
+        // Optimistic Update
+        setClient(prev => prev ? ({
+            ...prev,
+            photos: prev.photos.filter(p => p.id !== photoId)
+        }) : null);
+
+        try {
+            const res = await fetch(`/api/photos/${photoId}`, {
+                method: 'DELETE',
+            });
+            
+            if (!res.ok) {
+                throw new Error('Failed to delete');
+            }
+        } catch {
+            showAlert('Error', 'Error deleting photo');
+            // Rollback
+            setClient(prev => prev ? ({ ...prev, photos: previousPhotos || [] }) : null);
         }
-    } catch {
-        alert('Error deleting photo');
-        // Rollback
-        setClient(prev => prev ? ({ ...prev, photos: previousPhotos || [] }) : null);
-    }
+    });
   };
 
   const copyLink = () => {
@@ -307,6 +326,78 @@ export default function ClientDetailPage() {
 
   return (
     <div>
+        {/* Custom Alert Modal */}
+        <Modal.Root open={alertState.open} onOpenChange={(open) => setAlertState(prev => ({ ...prev, open }))}>
+            <Modal.Content>
+                <Modal.Header title={alertState.title || undefined} />
+                <div className="p-6">
+                    <p className="text-text-sub-600 whitespace-pre-wrap">{alertState.message}</p>
+                </div>
+                <Modal.Footer>
+                    <button 
+                        onClick={() => setAlertState(prev => ({ ...prev, open: false }))}
+                        className="px-4 py-2 bg-primary-base text-white rounded-lg text-sm font-medium hover:bg-primary-dark"
+                    >
+                        OK
+                    </button>
+                </Modal.Footer>
+            </Modal.Content>
+        </Modal.Root>
+
+        {/* Custom Confirm Modal */}
+        <Modal.Root open={confirmState.open} onOpenChange={(open) => setConfirmState(prev => ({ ...prev, open }))}>
+            <Modal.Content>
+                <Modal.Header title={confirmState.title || undefined} />
+                <div className="p-6">
+                    <p className="text-text-sub-600 whitespace-pre-wrap">{confirmState.message}</p>
+                </div>
+                <Modal.Footer>
+                    <button 
+                         onClick={() => setConfirmState(prev => ({ ...prev, open: false }))}
+                         className="px-4 py-2 text-text-sub-600 hover:bg-bg-weak-50 rounded-lg text-sm font-medium"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        onClick={() => {
+                            confirmState.onConfirm();
+                            setConfirmState(prev => ({ ...prev, open: false }));
+                        }}
+                        className="px-4 py-2 bg-primary-base text-white rounded-lg text-sm font-medium hover:bg-primary-dark"
+                    >
+                        Confirm
+                    </button>
+                </Modal.Footer>
+            </Modal.Content>
+        </Modal.Root>
+
+        {/* Lightbox / "iFrame" View */}
+        {lightbox && (
+             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 animate-in fade-in duration-200">
+                <button 
+                    onClick={() => setLightbox(null)}
+                    className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-[101]"
+                >
+                    <RiCloseLine size={32} />
+                </button>
+                
+                {lightbox.type === 'image' ? (
+                     <img 
+                        src={lightbox.url} 
+                        alt="Full View" 
+                        className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+                     />
+                ) : (
+                    <video 
+                        src={lightbox.url} 
+                        className="max-w-full max-h-full rounded-lg"
+                        controls
+                        autoPlay
+                    />
+                )}
+             </div>
+        )}
+
         <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
                  <Link href="/admin" className="text-sm text-text-sub-600 hover:text-text-strong-950 flex items-center gap-1">
@@ -534,7 +625,8 @@ export default function ClientDetailPage() {
           {client.photos.map((photo) => (
             <div
               key={photo.id}
-              className="group relative aspect-square overflow-hidden bg-bg-weak-50"
+              className="group relative aspect-square overflow-hidden bg-bg-weak-50 cursor-pointer"
+              onClick={() => setLightbox({ open: true, url: photo.url, type: 'image' })}
             >
               {/* Using standard img for now, verify Next/Image later */}
               <img
@@ -544,7 +636,7 @@ export default function ClientDetailPage() {
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-                 <div className="flex gap-2">
+                 <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                     <button
                         onClick={() => setHeaderFromPhoto(photo.url)}
                         className="p-2 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full text-white transition-colors"
@@ -553,7 +645,7 @@ export default function ClientDetailPage() {
                         <RiStarLine size={18} />
                     </button>
                     <a
-                    href={photo.url}
+                    href={`/api/download?url=${encodeURIComponent(photo.url)}&filename=${encodeURIComponent(photo.filename)}`}
                     download={photo.filename}
                     target="_blank"
                     className="p-2 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full text-white transition-colors"

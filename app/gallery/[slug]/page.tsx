@@ -1,7 +1,7 @@
 import { pool } from '@/lib/db';
-import { RiDownloadLine } from '@remixicon/react';
 import { Metadata } from 'next';
 import Header from '@/components/header';
+import GalleryClient from '@/components/gallery/GalleryClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,6 +35,7 @@ async function getClientBySlug(slug: string): Promise<Client | null> {
     if (clientRes.rows.length === 0) return null;
     const client = clientRes.rows[0];
 
+    // Fetch photos
     const photosRes = await pool.query(
       'SELECT * FROM photos WHERE client_id = $1 ORDER BY created_at DESC',
       [client.id]
@@ -48,16 +49,6 @@ async function getClientBySlug(slug: string): Promise<Client | null> {
     console.error('Database Error:', error);
     return null;
   }
-}
-
-// Helper to force download via Cloudinary
-function getDownloadUrl(url: string, filename: string) {
-  // Cloudinary URLs look like: https://res.cloudinary.com/demo/image/upload/v1234/sample.jpg
-  // We want to insert /fl_attachment:filename/ after /upload/
-  // Use encodeURIComponent to handle spaces and special chars, but usually avoid extension if it doubles up? 
-  // filename from DB usually includes extension.
-  const attachmentTransform = `fl_attachment:${encodeURIComponent(filename)}`;
-  return url.replace('/upload/', `/upload/${attachmentTransform}/`);
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -96,7 +87,6 @@ export default async function GalleryPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-bg-white-0 pb-20">
-      {/* Hero Header */}
       {/* Hero Header */}
       {client.header_media_url ? (
         <div className="relative w-full h-[70vh] flex items-center justify-center overflow-hidden bg-bg-weak-50">
@@ -154,44 +144,8 @@ export default async function GalleryPage({ params }: Props) {
          </>
       )}
 
-      {/* Gallery Grid */}
-      <div className="w-full px-2 mt-4">
-        <div className="columns-2 gap-2 sm:columns-3 md:columns-4 lg:columns-5 xl:columns-6 space-y-2">
-          {client.photos.map((photo) => (
-            <div
-              key={photo.id}
-              className="group relative break-inside-avoid overflow-hidden bg-bg-weak-50 shadow-sm"
-            >
-              <img
-                src={photo.url}
-                alt={photo.filename}
-                className="w-full transform transition-transform duration-500 will-change-transform group-hover:scale-105"
-                loading="lazy"
-              />
-              
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                <div className="absolute bottom-4 right-4 flex gap-2">
-                  <a
-                    href={getDownloadUrl(photo.url, photo.filename)} // Force download transformation
-                    download={photo.filename} // Fallback hint
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-text-strong-950 shadow-md transition-transform hover:scale-110 active:scale-95"
-                    title="Download Photo"
-                  >
-                    <RiDownloadLine size={20} />
-                  </a>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        {client.photos.length === 0 && (
-          <div className="py-20 text-center text-text-sub-600">
-            <p>No photos have been uploaded to this gallery yet.</p>
-          </div>
-        )}
-      </div>
+      {/* Interactive Gallery Grid using Client Component */}
+      <GalleryClient photos={client.photos} />
 
        <footer className="mt-20 border-t border-stroke-soft-200 py-8 text-center text-sm text-text-sub-600">
         <p>Powered by Studio Gallery</p>
