@@ -4,9 +4,10 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { format } from 'date-fns';
-import { RiUploadCloud2Line, RiShareBoxLine, RiDownloadLine, RiCheckLine, RiLoader4Line, RiStarLine, RiDeleteBinLine, RiCloseLine } from '@remixicon/react';
+import { RiUploadCloud2Line, RiShareBoxLine, RiDownloadLine, RiCheckLine, RiLoader4Line, RiStarLine, RiDeleteBinLine, RiCloseLine, RiMoreLine, RiEdit2Line, RiArchiveLine } from '@remixicon/react';
 import * as Modal from '@/components/ui/modal';
 import * as ProgressBar from '@/components/ui/progress-bar';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 interface Photo {
   id: string;
@@ -320,6 +321,14 @@ export default function ClientDetailPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Helper to get optimized Cloudinary URL for thumbnails
+  const getOptimizedUrl = (url: string, width = 600) => {
+    if (url.includes('cloudinary.com')) {
+      return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`);
+    }
+    return url;
+  };
+
   if (!client) return <div className="p-8 text-center">Loading...</div>;
 
   const publicUrl = typeof window !== 'undefined' ? `${window.location.origin}/gallery/${client.slug}` : '';
@@ -447,10 +456,64 @@ export default function ClientDetailPage() {
                     </div>
                 </div>
 
-                <div className="flex gap-3 flex-wrap">
+                <div className="flex gap-3 flex-wrap w-full lg:w-auto">
+                    {/* Mobile: Actions Dropdown */}
+                    <div className="md:hidden w-full sm:w-auto">
+                        <DropdownMenu.Root>
+                            <DropdownMenu.Trigger asChild>
+                                <button className="w-full px-4 py-2 text-sm font-medium text-text-strong-950 bg-bg-white-0 border border-stroke-soft-200 rounded-lg hover:bg-bg-weak-50 flex items-center justify-center gap-2">
+                                    Actions
+                                </button>
+                            </DropdownMenu.Trigger>
+                            <DropdownMenu.Portal>
+                                <DropdownMenu.Content 
+                                    className="min-w-[200px] bg-bg-white-0 rounded-lg border border-stroke-soft-200 shadow-lg p-1 z-50"
+                                    sideOffset={5}
+                                >
+                                    <DropdownMenu.Item 
+                                        onClick={openEdit}
+                                        className="flex items-center gap-2 px-3 py-2 text-sm text-text-strong-950 rounded-md hover:bg-bg-weak-50 cursor-pointer outline-none"
+                                    >
+                                        <RiEdit2Line size={16} />
+                                        Edit Details
+                                    </DropdownMenu.Item>
+                                    
+                                    {client.status !== 'ARCHIVED' ? (
+                                        <DropdownMenu.Item 
+                                            onClick={() => handleUpdateStatus('ARCHIVED')}
+                                            className="flex items-center gap-2 px-3 py-2 text-sm text-text-strong-950 rounded-md hover:bg-bg-weak-50 cursor-pointer outline-none"
+                                        >
+                                            <RiArchiveLine size={16} />
+                                            Archive
+                                        </DropdownMenu.Item>
+                                    ) : (
+                                        <DropdownMenu.Item 
+                                            onClick={() => handleUpdateStatus('ACTIVE')}
+                                            className="flex items-center gap-2 px-3 py-2 text-sm text-text-strong-950 rounded-md hover:bg-bg-weak-50 cursor-pointer outline-none"
+                                        >
+                                            <RiArchiveLine size={16} />
+                                            Unarchive
+                                        </DropdownMenu.Item>
+                                    )}
+                                    
+                                    {client.status !== 'DELETED' && (
+                                        <DropdownMenu.Item 
+                                            onClick={() => handleUpdateStatus('DELETED')}
+                                            className="flex items-center gap-2 px-3 py-2 text-sm text-error-base rounded-md hover:bg-error-weak-50 cursor-pointer outline-none"
+                                        >
+                                            <RiDeleteBinLine size={16} />
+                                            Delete
+                                        </DropdownMenu.Item>
+                                    )}
+                                </DropdownMenu.Content>
+                            </DropdownMenu.Portal>
+                        </DropdownMenu.Root>
+                    </div>
+
+                    {/* Desktop: Individual Buttons */}
                     <button 
                         onClick={openEdit}
-                        className="px-4 py-2 text-sm font-medium text-text-strong-950 bg-bg-white-0 border border-stroke-soft-200 rounded-lg hover:bg-bg-weak-50"
+                        className="hidden md:block px-4 py-2 text-sm font-medium text-text-strong-950 bg-bg-white-0 border border-stroke-soft-200 rounded-lg hover:bg-bg-weak-50"
                     >
                         Edit Details
                     </button>
@@ -458,14 +521,14 @@ export default function ClientDetailPage() {
                     {client.status !== 'ARCHIVED' ? (
                         <button 
                             onClick={() => handleUpdateStatus('ARCHIVED')}
-                            className="px-4 py-2 text-sm font-medium text-text-strong-950 bg-bg-white-0 border border-stroke-soft-200 rounded-lg hover:bg-bg-weak-50"
+                            className="hidden md:block px-4 py-2 text-sm font-medium text-text-strong-950 bg-bg-white-0 border border-stroke-soft-200 rounded-lg hover:bg-bg-weak-50"
                         >
                             Archive
                         </button>
                     ) : (
                         <button 
                             onClick={() => handleUpdateStatus('ACTIVE')}
-                             className="px-4 py-2 text-sm font-medium text-white bg-text-strong-950 rounded-lg hover:opacity-90"
+                             className="hidden md:block px-4 py-2 text-sm font-medium text-white bg-text-strong-950 rounded-lg hover:opacity-90"
                         >
                             Unarchive
                         </button>
@@ -474,21 +537,22 @@ export default function ClientDetailPage() {
                     {client.status !== 'DELETED' && (
                         <button 
                             onClick={() => handleUpdateStatus('DELETED')}
-                            className="px-4 py-2 text-sm font-medium text-error-base bg-bg-white-0 border border-stroke-soft-200 rounded-lg hover:bg-error-weak-50 hover:border-error-weak-200"
+                            className="hidden md:block px-4 py-2 text-sm font-medium text-error-base bg-bg-white-0 border border-stroke-soft-200 rounded-lg hover:bg-error-weak-50 hover:border-error-weak-200"
                         >
                             Delete
                         </button>
                     )}
                     
+                    {/* Upload Button - Always Visible */}
                     <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={uploading}
-                        className="flex items-center gap-2 rounded-lg bg-primary-base px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-70 ml-2"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-lg bg-primary-base px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-70"
                     >
                         <RiUploadCloud2Line size={18} />
                         {uploading ? 'Uploading...' : 'Upload Photos'}
                     </button>
-                    <span className="text-xs text-text-sub-600 self-center hidden md:inline ml-1">Max 10MB</span>
+                    <span className="hidden sm:inline text-xs text-text-sub-600 self-center">Max 10MB</span>
                      <input
                         type="file"
                         ref={fileInputRef}
@@ -549,7 +613,7 @@ export default function ClientDetailPage() {
 
 
         {/* Header Media Section */}
-        <div className="bg-bg-white-0 rounded-xl border border-stroke-soft-200 p-6 flex flex-col md:flex-row gap-6 items-start">
+        <div className="bg-bg-white-0 rounded-xl border border-stroke-soft-200 p-4 md:p-6 flex flex-col md:flex-row gap-6 items-start">
             <div className="flex-1">
                 <h3 className="text-lg font-semibold text-text-strong-950 mb-1">Gallery Header</h3>
                 <p className="text-sm text-text-sub-600 mb-4">
@@ -565,7 +629,7 @@ export default function ClientDetailPage() {
                     <div className="flex items-center gap-4">
                         <button 
                             onClick={removeHeaderMedia}
-                            className="px-4 py-2 bg-error-weak/10 text-error-base hover:bg-error-weak/20 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+                            className="px-4 py-2 bg-error-weak/10 text-error-base hover:bg-error-weak/20 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 w-full sm:w-auto"
                             disabled={updatingHeader}
                         >
                             {updatingHeader ? 'Removing...' : 'Remove Header Media'}
@@ -625,45 +689,47 @@ export default function ClientDetailPage() {
           {client.photos.map((photo) => (
             <div
               key={photo.id}
-              className="group relative aspect-square overflow-hidden bg-bg-weak-50 cursor-pointer"
-              onClick={() => setLightbox({ open: true, url: photo.url, type: 'image' })}
+              className="group relative aspect-square overflow-hidden bg-bg-weak-50 rounded-lg border border-stroke-soft-200 shadow-sm"
             >
-              {/* Using standard img for now, verify Next/Image later */}
+              {/* Image */}
               <img
-                src={photo.url}
+                src={getOptimizedUrl(photo.url)}
                 alt={photo.filename}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                className="h-full w-full object-cover cursor-pointer transition-transform duration-300 group-hover:scale-105"
                 loading="lazy"
+                onClick={() => setLightbox({ open: true, url: photo.url, type: 'image' })}
               />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-                 <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                    <button
-                        onClick={() => setHeaderFromPhoto(photo.url)}
-                        className="p-2 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full text-white transition-colors"
-                        title="Set as Gallery Header"
-                    >
-                        <RiStarLine size={18} />
-                    </button>
-                    <a
-                    href={`/api/download?url=${encodeURIComponent(photo.url)}&filename=${encodeURIComponent(photo.filename)}`}
-                    download={photo.filename}
-                    target="_blank"
-                    className="p-2 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full text-white transition-colors"
-                    title="Download"
-                    >
-                    <RiDownloadLine size={18} />
-                    </a>
-                    <button
-                        onClick={() => handleDeletePhoto(photo.id)}
-                        className="p-2 bg-white/20 hover:bg-red-500/80 backdrop-blur-sm rounded-full text-white transition-colors"
-                        title="Delete Photo"
-                    >
-                        <RiDeleteBinLine size={18} />
-                    </button>
-                 </div>
-                 <div className="absolute bottom-0 inset-x-0 p-2 text-center bg-black/50 backdrop-blur-sm">
-                     <p className="text-xs text-white truncate px-1">{photo.filename}</p>
-                 </div>
+              
+              {/* Action Buttons - Always visible on mobile, hover on desktop */}
+              <div className="absolute top-2 right-2 flex gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                 <button
+                     onClick={() => setHeaderFromPhoto(photo.url)}
+                     className="p-2 bg-black/60 hover:bg-black/80 backdrop-blur-sm rounded-full text-white transition-colors shadow-lg"
+                     title="Set as Gallery Header"
+                 >
+                     <RiStarLine size={16} />
+                 </button>
+                 <a
+                 href={`/api/download?url=${encodeURIComponent(photo.url)}&filename=${encodeURIComponent(photo.filename)}`}
+                 download={photo.filename}
+                 target="_blank"
+                 className="p-2 bg-black/60 hover:bg-black/80 backdrop-blur-sm rounded-full text-white transition-colors shadow-lg"
+                 title="Download"
+                 >
+                 <RiDownloadLine size={16} />
+                 </a>
+                 <button
+                     onClick={() => handleDeletePhoto(photo.id)}
+                     className="p-2 bg-black/60 hover:bg-red-500/90 backdrop-blur-sm rounded-full text-white transition-colors shadow-lg"
+                     title="Delete Photo"
+                 >
+                     <RiDeleteBinLine size={16} />
+                 </button>
+              </div>
+              
+              {/* Filename - Always visible */}
+              <div className="absolute bottom-0 inset-x-0 p-2 text-center bg-gradient-to-t from-black/70 to-transparent backdrop-blur-sm">
+                  <p className="text-xs text-white truncate px-1 font-medium">{photo.filename}</p>
               </div>
             </div>
           ))}

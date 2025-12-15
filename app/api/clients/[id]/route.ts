@@ -20,9 +20,14 @@ export async function GET(
     
     const client = clientResult.rows[0];
 
-    // Fetch Photos
+    // Fetch Photos (Optimized)
+    // LIMIT 500 to prevent timeouts on large albums. TODO: Implement infinite scroll.
     const photosResult = await pool.query(
-      'SELECT * FROM photos WHERE client_id = $1 ORDER BY created_at DESC',
+      `SELECT id, url, filename, public_id, created_at, client_id 
+       FROM photos 
+       WHERE client_id = $1 
+       ORDER BY created_at DESC 
+       LIMIT 500`,
       [id]
     );
 
@@ -34,6 +39,9 @@ export async function GET(
       subheading: client.subheading,
       slug: client.slug,
       createdAt: client.created_at,
+      status: client.status || 'ACTIVE',
+      headerMediaUrl: client.header_media_url,
+      headerMediaType: client.header_media_type,
       photos: photosResult.rows.map(p => ({
         id: p.id,
         url: p.url,

@@ -1,12 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { RiDownloadLine, RiCloseLine } from '@remixicon/react';
+import { RiCloseLine, RiDownloadLine } from '@remixicon/react';
 
 interface Photo {
   id: string;
   url: string;
-  public_id: string;
   filename: string;
 }
 
@@ -14,30 +13,51 @@ interface GalleryClientProps {
   photos: Photo[];
 }
 
-function getDownloadUrl(url: string, filename: string) {
+// Helper to get optimized Cloudinary URL for display
+const getOptimizedUrl = (url: string, width = 800) => {
+  // Check if it's a Cloudinary URL
+  if (url.includes('cloudinary.com')) {
+    // Insert transformations before '/upload/'
+    return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`);
+  }
+  return url; // Return original if not Cloudinary
+};
+
+const getDownloadUrl = (url: string, filename: string) => {
   return `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
-}
+};
 
 export default function GalleryClient({ photos }: GalleryClientProps) {
-  const [lightbox, setLightbox] = useState<{ open: boolean; url: string; } | null>(null);
+  const [lightbox, setLightbox] = useState<{ open: boolean; url: string; filename: string } | null>(null);
 
   return (
     <>
       {/* Lightbox */}
       {lightbox && (
-             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 animate-in fade-in duration-200">
-                <button 
-                    onClick={() => setLightbox(null)}
-                    className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-[101]"
-                >
-                    <RiCloseLine size={32} />
-                </button>
-                <img 
-                    src={lightbox.url} 
-                    alt="Full View" 
-                    className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-                 />
-             </div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 animate-in fade-in duration-200">
+          <button
+            onClick={() => setLightbox(null)}
+            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-[101]"
+          >
+            <RiCloseLine size={32} />
+          </button>
+
+          <a
+            href={getDownloadUrl(lightbox.url, lightbox.filename)}
+            download={lightbox.filename}
+            target="_blank"
+            className="absolute top-4 left-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-[101]"
+            title="Download Original"
+          >
+            <RiDownloadLine size={32} />
+          </a>
+
+          <img
+            src={lightbox.url}
+            alt="Full View"
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+          />
+        </div>
       )}
 
       {/* Gallery Grid */}
@@ -47,10 +67,10 @@ export default function GalleryClient({ photos }: GalleryClientProps) {
             <div
               key={photo.id}
               className="group relative break-inside-avoid overflow-hidden bg-bg-weak-50 shadow-sm cursor-pointer"
-              onClick={() => setLightbox({ open: true, url: photo.url })}
+              onClick={() => setLightbox({ open: true, url: photo.url, filename: photo.filename })}
             >
               <img
-                src={photo.url}
+                src={getOptimizedUrl(photo.url)}
                 alt={photo.filename}
                 className="w-full transform transition-transform duration-500 will-change-transform group-hover:scale-105"
                 loading="lazy"
@@ -60,11 +80,11 @@ export default function GalleryClient({ photos }: GalleryClientProps) {
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                 <div className="absolute bottom-4 right-4 flex gap-2">
                   <a
-                    href={getDownloadUrl(photo.url, photo.filename)} // Force download transformation
-                    download={photo.filename} // Fallback hint
+                    href={getDownloadUrl(photo.url, photo.filename)}
+                    download={photo.filename}
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-text-strong-950 shadow-md transition-transform hover:scale-110 active:scale-95"
                     title="Download Photo"
-                    onClick={(e) => e.stopPropagation()} // Prevent opening lightbox
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <RiDownloadLine size={20} />
                   </a>

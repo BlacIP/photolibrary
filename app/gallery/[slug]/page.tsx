@@ -111,12 +111,12 @@ export default async function GalleryPage({ params }: Props) {
             )}
             <div className="absolute inset-0 bg-black/40" />
 
-             <div className="relative z-10 text-center px-5">
-                <h1 className="text-title-h2 font-bold sm:text-title-h1 text-white">
+             <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white break-words">
                    {client.name}
                 </h1>
-                {client.subheading && <p className="mt-1 text-lg text-white/90 max-w-2xl mx-auto whitespace-pre-wrap">{client.subheading}</p>}
-                <p className="mt-2 font-medium text-white/80">
+                {client.subheading && <p className="mt-2 text-base sm:text-lg md:text-xl text-white/90 max-w-2xl mx-auto whitespace-pre-wrap">{client.subheading}</p>}
+                <p className="mt-3 font-medium text-white/80 text-sm sm:text-base">
                    {new Date(client.event_date).toLocaleDateString(undefined, {
                       year: 'numeric',
                       month: 'long',
@@ -128,12 +128,12 @@ export default async function GalleryPage({ params }: Props) {
       ) : (
          <>
          <Header />
-         <div className="py-20 px-5 text-center bg-bg-weak-50 border-b border-stroke-soft-200">
-            <h1 className="text-title-h2 font-bold sm:text-title-h1 text-text-strong-950">
+         <div className="py-12 sm:py-20 px-4 text-center bg-bg-weak-50 border-b border-stroke-soft-200">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-text-strong-950 break-words">
                {client.name}
             </h1>
-            {client.subheading && <p className="mt-1 text-lg text-text-sub-600 max-w-2xl mx-auto whitespace-pre-wrap">{client.subheading}</p>}
-            <p className="mt-2 font-medium text-text-sub-600">
+            {client.subheading && <p className="mt-2 text-base sm:text-lg text-text-sub-600 max-w-2xl mx-auto whitespace-pre-wrap">{client.subheading}</p>}
+            <p className="mt-3 font-medium text-text-sub-600 text-sm sm:text-base">
                {new Date(client.event_date).toLocaleDateString(undefined, {
                   year: 'numeric',
                   month: 'long',

@@ -233,10 +233,10 @@ export default function SettingsPage() {
       <div className="mb-6">
         <h1 className="text-title-h4 font-bold text-text-strong-950 mb-4">Settings</h1>
         
-        <div className="flex flex-wrap gap-1 bg-bg-weak-50 p-1 rounded-lg w-fit">
+        <div className="flex flex-wrap gap-1 bg-bg-weak-50 p-1 rounded-lg w-full sm:w-fit">
                  <button 
                     onClick={() => setActiveTab('profile')}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                         activeTab === 'profile' 
                             ? 'bg-white text-text-strong-950 shadow-sm' 
                             : 'text-text-sub-600 hover:text-text-strong-950'
@@ -247,7 +247,7 @@ export default function SettingsPage() {
                 {isSuperAdmin && (
                  <button 
                     onClick={() => setActiveTab('team')}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                         activeTab === 'team' 
                             ? 'bg-white text-text-strong-950 shadow-sm' 
                             : 'text-text-sub-600 hover:text-text-strong-950'
@@ -259,7 +259,7 @@ export default function SettingsPage() {
                 {isSuperAdmin && (
                  <button 
                     onClick={() => setActiveTab('storage')}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                         activeTab === 'storage' 
                             ? 'bg-white text-text-strong-950 shadow-sm' 
                             : 'text-text-sub-600 hover:text-text-strong-950'
@@ -270,7 +270,7 @@ export default function SettingsPage() {
                 )}
                  <button 
                     onClick={() => setActiveTab('archive')}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                         activeTab === 'archive' 
                             ? 'bg-white text-text-strong-950 shadow-sm' 
                             : 'text-text-sub-600 hover:text-text-strong-950'
@@ -280,7 +280,7 @@ export default function SettingsPage() {
                 </button>
                  <button 
                     onClick={() => setActiveTab('recycle')}
-                    className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                    className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                         activeTab === 'recycle' 
                             ? 'bg-white text-text-strong-950 shadow-sm' 
                             : 'text-text-sub-600 hover:text-text-strong-950'
@@ -310,8 +310,8 @@ export default function SettingsPage() {
             </button>
           </div>
 
-          <div className="rounded-xl border border-stroke-soft-200 bg-bg-white-0 shadow-sm overflow-hidden">
-            <table className="w-full text-left text-sm">
+          <div className="rounded-xl border border-stroke-soft-200 bg-bg-white-0 shadow-sm overflow-x-auto">
+            <table className="w-full text-left text-sm min-w-[600px]">
               <thead className="bg-bg-weak-50 text-text-sub-600">
                 <tr>
                   <th className="px-6 py-4 font-medium">User</th>
@@ -445,34 +445,36 @@ export default function SettingsPage() {
                 </div>
             </div>
 
-            <div className="bg-bg-white-0 rounded-xl border border-stroke-soft-200 overflow-hidden">
-                <div className="px-6 py-4 border-b border-stroke-soft-200">
-                    <h3 className="font-semibold text-text-strong-950">Storage by Client</h3>
-                </div>
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-bg-weak-50 text-text-sub-600">
-                        <tr>
-                            <th className="px-6 py-3 font-medium">Client</th>
-                            <th className="px-6 py-3 font-medium">Status</th>
-                            <th className="px-6 py-3 font-medium">Photos</th>
-                            <th className="px-6 py-3 font-medium">Size</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-stroke-soft-200">
-                        {storageStats.clients.map((c: any) => (
-                            <tr key={c.id}>
-                                <td className="px-6 py-3 font-medium text-text-strong-950">{c.name}</td>
-                                <td className="px-6 py-3">
-                                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${c.status === 'ARCHIVED' ? 'bg-amber-100 text-amber-700' : c.status === 'DELETED' ? 'bg-error-weak text-error-base' : 'bg-success-weak text-success-base'}`}>
-                                        {c.status}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-3 text-text-sub-600">{c.photo_count}</td>
-                                <td className="px-6 py-3 font-mono text-text-sub-600">{formatBytes(c.total_bytes)}</td>
+            <div className="bg-bg-white-0 rounded-xl border border-stroke-soft-200 overflow-x-auto">
+                <div className="min-w-[700px]">
+                    <div className="px-6 py-4 border-b border-stroke-soft-200">
+                        <h3 className="font-semibold text-text-strong-950">Storage by Client</h3>
+                    </div>
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-bg-weak-50 text-text-sub-600">
+                            <tr>
+                                <th className="px-6 py-3 font-medium">Client</th>
+                                <th className="px-6 py-3 font-medium">Status</th>
+                                <th className="px-6 py-3 font-medium">Photos</th>
+                                <th className="px-6 py-3 font-medium">Size</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-stroke-soft-200">
+                            {storageStats.clients.map((c: any) => (
+                                <tr key={c.id}>
+                                    <td className="px-6 py-3 font-medium text-text-strong-950">{c.name}</td>
+                                    <td className="px-6 py-3">
+                                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${c.status === 'ARCHIVED' ? 'bg-amber-100 text-amber-700' : c.status === 'DELETED' ? 'bg-error-weak text-error-base' : 'bg-success-weak text-success-base'}`}>
+                                            {c.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-3 text-text-sub-600">{c.photo_count}</td>
+                                    <td className="px-6 py-3 font-mono text-text-sub-600">{formatBytes(c.total_bytes)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
       )}
@@ -491,8 +493,8 @@ export default function SettingsPage() {
                     : 'Clients in Recycle Bin are kept for 7 days before permanent deletion.'}
              </p>
 
-            <div className="bg-bg-white-0 rounded-xl border border-stroke-soft-200 overflow-hidden">
-                <table className="w-full text-left text-sm">
+            <div className="bg-bg-white-0 rounded-xl border border-stroke-soft-200 overflow-x-auto">
+                <table className="w-full text-left text-sm min-w-[700px]">
                     <thead className="bg-bg-weak-50 text-text-sub-600">
                         <tr>
                             <th className="px-6 py-3 font-medium">Client</th>
@@ -561,7 +563,7 @@ export default function SettingsPage() {
              <Modal.Header title="Create New Admin" description="Grant access to the studio dashboard." />
              <form onSubmit={handleCreateUser} className="p-5 space-y-4">
                {/* Form fields same as before, simplified for this replace check... Keeping it concise */}
-               <div className="grid grid-cols-2 gap-4">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-text-sub-600 mb-1">First Name</label>
                     <input value={newFirstName} onChange={(e) => setNewFirstName(e.target.value)} className="w-full rounded-lg border border-stroke-soft-200 px-3 py-2 text-sm" />
