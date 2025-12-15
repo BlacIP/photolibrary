@@ -20,12 +20,12 @@ export async function GET() {
 
   // Only Super Admins should ideally see all users, but Admins might need to see themselves?
   // User asked for "Super Admin user will have access to user management".
-  if (currentUser.role !== 'SUPER_ADMIN') {
+  if (!['SUPER_ADMIN', 'SUPER_ADMIN_MAX'].includes(currentUser.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   try {
-    const { rows } = await pool.query('SELECT id, email, role, created_at FROM users ORDER BY created_at DESC');
+    const { rows } = await pool.query('SELECT id, email, first_name, last_name, role, permissions, created_at FROM users ORDER BY created_at DESC');
     return NextResponse.json(rows);
   } catch (error) {
     console.error(error);
@@ -43,18 +43,27 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { email, password } = body;
+    const { email, password, firstName, lastName } = body;
 
     if (!email || !password) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
     }
 
+    const roleInput = body.role;
+    // Explicitly disallow creating SUPER_ADMIN_MAX directly via API
+    if (roleInput === 'SUPER_ADMIN_MAX') {
+        return NextResponse.json({ error: 'Cannot create Owner role directly' }, { status: 403 });
+    }
+    
+    // Only allow SUPER_ADMIN or ADMIN
+    const role = roleInput === 'SUPER_ADMIN' ? 'SUPER_ADMIN' : 'ADMIN';
+
     const passwordHash = await hash(password, 10);
     const id = crypto.randomUUID();
 
     await pool.query(
-      'INSERT INTO users (id, email, password_hash, role) VALUES ($1, $2, $3, $4)',
-      [id, email, passwordHash, 'ADMIN']
+      'INSERT INTO users (id, email, password_hash, first_name, last_name, role) VALUES ($1, $2, $3, $4, $5, $6)',
+      [id, email, passwordHash, firstName || null, lastName || null, role]
     );
 
     return NextResponse.json({ id, email, role: 'ADMIN' });

@@ -1,29 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { RiHomeLine, RiImageLine, RiSettings2Line, RiLogoutBoxLine, RiCameraLensLine } from '@remixicon/react';
+import { usePathname } from 'next/navigation';
+import { RiHomeLine, RiSettings2Line, RiCameraLensLine } from '@remixicon/react';
 import { cn } from '@/utils/cn';
+import { UserNav } from '@/components/user-nav';
 
 const NAV_ITEMS = [
   { label: 'Home', href: '/admin', icon: RiHomeLine },
-  { label: 'Clients', href: '/admin', icon: RiImageLine }, // Reusing admin home for now as it lists clients
   { label: 'Settings', href: '/admin/settings', icon: RiSettings2Line },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    // Basic logout: clear cookie (server side usually, but simplified here)
-    // For now we just redirect to login which will overwrite logic or we can add a logout endpoint
-    // Let's simplest way: force hard refresh on login page which clears state if not persisted, 
-    // but correctly we need to clear cookie.
-    // We didn't create logout API yet. 
-    document.cookie = 'session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    router.push('/login');
-  };
 
   return (
     <div className="flex h-screen bg-bg-weak-50 text-text-strong-950 font-sans">
@@ -60,23 +49,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             })}
           </nav>
 
-          {/* Footer */}
           <div className="border-t border-stroke-soft-200 p-4">
-             <button 
-                onClick={handleLogout}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-error-base hover:bg-error-weak/10 transition-colors"
-              >
-                <RiLogoutBoxLine size={20} />
-                Sign Out
-             </button>
+            <UserNav />
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="ml-64 flex-1 overflow-y-auto">
-        <div className="container mx-auto max-w-5xl p-8">
-          {children}
+      <main className="ml-64 flex-1 flex flex-col h-screen">
+       
+
+        <div className="flex-1 overflow-y-auto p-8">
+          <div className="container mx-auto max-w-5xl">
+            {children}
+          </div>
         </div>
       </main>
     </div>

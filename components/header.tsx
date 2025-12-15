@@ -1,20 +1,18 @@
-import dynamic from 'next/dynamic';
 import { RiCameraLensLine } from '@remixicon/react';
+import { cn } from '@/utils/cn';
 
-const DynamicThemeSwitch = dynamic(() => import('./theme-switch'), {
-  ssr: false,
-});
 
-export default function Header() {
+
+export default function Header({ className }: { className?: string }) {
   return (
-    <div className='border-b border-stroke-soft-200'>
+    <div className={cn('border-b border-stroke-soft-200', className)}>
       <header className='mx-auto flex h-14 max-w-5xl items-center justify-between px-5'>
-          <div className='flex items-center gap-2 text-label-md text-text-strong-950 font-bold'>
+          <div className='flex items-center gap-2 text-label-md font-bold text-inherit'>
             <RiCameraLensLine className="text-primary-base" size={24} />
             <span>Studio Manager</span>
           </div>
 
-        <DynamicThemeSwitch />
+
       </header>
     </div>
   );

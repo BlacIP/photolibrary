@@ -9,18 +9,46 @@ export default function NewClientPage() {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
+    subheadings: [''], // Array for multiple inputs
     date: new Date().toISOString().split('T')[0],
   });
+
+  const handleSubheadingChange = (index: number, value: string) => {
+    const newSubheadings = [...formData.subheadings];
+    newSubheadings[index] = value;
+    setFormData({ ...formData, subheadings: newSubheadings });
+  };
+
+  const addSubheading = () => {
+    setFormData({ ...formData, subheadings: [...formData.subheadings, ''] });
+  };
+
+  const removeSubheading = (index: number) => {
+    const newSubheadings = formData.subheadings.filter((_, i) => i !== index);
+    setFormData({ ...formData, subheadings: newSubheadings.length ? newSubheadings : [''] });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      // Filter empty strings and join with newline
+      const subheadingString = formData.subheadings
+        .map(s => s.trim())
+        .filter(s => s)
+        .join('\n');
+
+      const payload = {
+        name: formData.name,
+        date: formData.date,
+        subheading: subheadingString
+      };
+
       const res = await fetch('/api/clients', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -60,6 +88,43 @@ export default function NewClientPage() {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
+          </div>
+
+          <div>
+             <label className="mb-1.5 block text-sm font-medium text-text-strong-950">
+               Subtitle / Location
+             </label>
+             <div className="flex flex-col gap-2">
+                {formData.subheadings.map((sub, index) => (
+                    <div key={index} className="flex gap-2">
+                        <input 
+                            type="text"
+                            placeholder={index === 0 ? "e.g. Lagos, Nigeria" : "Additional info"}
+                            className="flex-1 rounded-lg border border-stroke-soft-200 bg-bg-weak-50 py-2.5 px-4 text-sm text-text-strong-950 placeholder:text-text-sub-600 focus:border-primary-base focus:outline-none focus:ring-1 focus:ring-primary-base"
+                            value={sub}
+                            onChange={(e) => handleSubheadingChange(index, e.target.value)}
+                        />
+                        {formData.subheadings.length > 1 && (
+                            <button
+                                type="button"
+                                onClick={() => removeSubheading(index)}
+                                className="px-3 text-text-sub-600 hover:text-error-base text-sm font-medium"
+                            >
+                                Remove
+                            </button>
+                        )}
+                    </div>
+                ))}
+                {formData.subheadings.length < 3 && (
+                    <button
+                        type="button"
+                        onClick={addSubheading}
+                        className="self-start text-sm text-primary-base font-medium hover:underline mt-1"
+                    >
+                        + Add Another Subtitle
+                    </button>
+                )}
+             </div>
           </div>
 
           <div>
