@@ -15,6 +15,13 @@ if (cloudinaryConfig) {
 
 export default cloudinary;
 
+// Get environment-specific folder prefix
+export function getCloudinaryFolder(baseFolder: string): string {
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  const folderSuffix = isDevelopment ? '-demo' : '';
+  return `${baseFolder}${folderSuffix}`;
+}
+
 export async function signUploadRequest(folder: string) {
   const timestamp = Math.round((new Date).getTime() / 1000);
   // Retrieve secret from config (handles both env var strategies)
@@ -24,10 +31,13 @@ export async function signUploadRequest(folder: string) {
     throw new Error("Cloudinary API Secret not found");
   }
 
+  // Use environment-specific folder
+  const envFolder = getCloudinaryFolder(folder);
+
   const signature = cloudinary.utils.api_sign_request({
     timestamp: timestamp,
-    folder: folder,
+    folder: envFolder,
   }, apiSecret);
   
-  return { timestamp, signature };
+  return { timestamp, signature, folder: envFolder };
 }
