@@ -209,9 +209,33 @@ export default function ClientDetailPage() {
                     method: 'POST',
                     body: formData,
                     });
+                    
                     if (!res.ok) {
-                        const data = await res.json();
-                        throw new Error(data.error || 'Upload failed');
+                        // Check if response is JSON before parsing
+                        const contentType = res.headers.get('content-type');
+                        let errorMessage = 'Upload failed';
+                        
+                        if (contentType && contentType.includes('application/json')) {
+                            try {
+                                const data = await res.json();
+                                errorMessage = data.error || errorMessage;
+                            } catch {
+                                errorMessage = `Server error (${res.status})`;
+                            }
+                        } else {
+                            // Server returned non-JSON (likely HTML error page)
+                            const text = await res.text();
+                            if (res.status === 413) {
+                                errorMessage = 'File too large for server';
+                            } else if (res.status === 504 || res.status === 524) {
+                                errorMessage = 'Upload timeout - file may be too large';
+                            } else if (text.includes('Request Entity Too Large')) {
+                                errorMessage = 'File exceeds server limit';
+                            } else {
+                                errorMessage = `Server error (${res.status})`;
+                            }
+                        }
+                        throw new Error(errorMessage);
                     }
                 } catch (err: any) {
                     console.error('Upload failed for', file.name, err);
