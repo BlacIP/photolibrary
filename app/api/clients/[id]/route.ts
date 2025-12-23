@@ -94,8 +94,31 @@ export async function DELETE(
 
   const id = params.id;
   try {
-    // Delete photos first (FK) or rely on CASCADE if configured (but safe to do here)
+    // Fetch all photos for this client to delete from Cloudinary
+    const photosResult = await pool.query(
+      'SELECT public_id FROM photos WHERE client_id = $1',
+      [id]
+    );
+
+    // Delete images from Cloudinary
+    if (photosResult.rows.length > 0) {
+      const cloudinary = (await import('@/lib/cloudinary')).default;
+      
+      for (const photo of photosResult.rows) {
+        try {
+          await cloudinary.uploader.destroy(photo.public_id);
+          console.log(`Deleted from Cloudinary: ${photo.public_id}`);
+        } catch (cloudinaryError) {
+          console.error(`Failed to delete from Cloudinary: ${photo.public_id}`, cloudinaryError);
+          // Continue with other deletions even if one fails
+        }
+      }
+    }
+
+    // Delete photos from database (FK) 
     await pool.query('DELETE FROM photos WHERE client_id = $1', [id]);
+    
+    // Delete client from database
     await pool.query('DELETE FROM clients WHERE id = $1', [id]);
 
     return NextResponse.json({ success: true });

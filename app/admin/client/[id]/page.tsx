@@ -198,57 +198,68 @@ export default function ClientDetailPage() {
         const BATCH_SIZE = 3;
         const processBatch = async (files: File[]) => {
            for (let i = 0; i < files.length; i += BATCH_SIZE) {
-             const chunk = files.slice(i, i + BATCH_SIZE);
-             await Promise.all(chunk.map(async (file) => {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('clientId', id);
+              const chunk = files.slice(i, i + BATCH_SIZE);
+              await Promise.all(chunk.map(async (file) => {
+                 try {
+                     // Step 1: Get upload signature from server
+                     const sigRes = await fetch('/api/photos/upload-signature', {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify({ clientId: id }),
+                     });
 
-                try {
-                    const res = await fetch('/api/photos/upload', {
-                    method: 'POST',
-                    body: formData,
-                    });
-                    
-                    if (!res.ok) {
-                        // Check if response is JSON before parsing
-                        const contentType = res.headers.get('content-type');
-                        let errorMessage = 'Upload failed';
-                        
-                        if (contentType && contentType.includes('application/json')) {
-                            try {
-                                const data = await res.json();
-                                errorMessage = data.error || errorMessage;
-                            } catch {
-                                errorMessage = `Server error (${res.status})`;
-                            }
-                        } else {
-                            // Server returned non-JSON (likely HTML error page)
-                            const text = await res.text();
-                            if (res.status === 413) {
-                                errorMessage = 'File too large for server';
-                            } else if (res.status === 504 || res.status === 524) {
-                                errorMessage = 'Upload timeout - file may be too large';
-                            } else if (text.includes('Request Entity Too Large')) {
-                                errorMessage = 'File exceeds server limit';
-                            } else {
-                                errorMessage = `Server error (${res.status})`;
-                            }
-                        }
-                        throw new Error(errorMessage);
-                    }
-                } catch (err: any) {
-                    console.error('Upload failed for', file.name, err);
-                    errors.push(`${file.name}: ${err.message}`);
-                } finally {
-                    setProgress((prev) => prev + 1);
-                }
-             }));
-           }
+                     if (!sigRes.ok) {
+                         throw new Error('Failed to get upload signature');
+                     }
+
+                     const { timestamp, signature, folder, cloudName, apiKey } = await sigRes.json();
+
+                     // Step 2: Upload directly to Cloudinary
+                     const formData = new FormData();
+                     formData.append('file', file);
+                     formData.append('timestamp', timestamp.toString());
+                     formData.append('signature', signature);
+                     formData.append('folder', folder);
+                     formData.append('api_key', apiKey);
+
+                     const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                         method: 'POST',
+                         body: formData,
+                     });
+
+                     if (!uploadRes.ok) {
+                         throw new Error('Cloudinary upload failed');
+                     }
+
+                     const uploadData = await uploadRes.json();
+
+                     // Step 3: Save photo record to database
+                     const saveRes = await fetch('/api/photos/save-record', {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify({
+                             clientId: id,
+                             publicId: uploadData.public_id,
+                             url: uploadData.secure_url,
+                         }),
+                     });
+
+                     if (!saveRes.ok) {
+                         throw new Error('Failed to save photo record');
+                     }
+                 } catch (err: any) {
+                     console.error('Upload failed for', file.name, err);
+                     errors.push(`${file.name}: ${err.message}`);
+                 } finally {
+                     setProgress((prev) => prev + 1);
+                 }
+              }));
+            }
+            return errors;
         };
 
         try {
-          await processBatch(filesToUpload);
+          const errors = await processBatch(filesToUpload);
           
           if (errors.length > 0) {
               const errorMsg = `Some uploads failed:\n${errors.filter(e => !e.includes('File too large')).join('\n')}`;

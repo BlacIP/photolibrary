@@ -39,17 +39,29 @@ export async function DELETE(
   const id = params.id;
 
   try {
-    // Get photo public_id
-    const { rows } = await pool.query('SELECT public_id FROM photos WHERE id = $1', [id]);
-    if (rows.length === 0) {
-        return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
+    // Fetch photo details to get public_id for Cloudinary deletion
+    const photoResult = await pool.query(
+      'SELECT public_id FROM photos WHERE id = $1',
+      [id]
+    );
+
+    if (photoResult.rows.length === 0) {
+      return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
     }
-    const publicId = rows[0].public_id;
+
+    const photo = photoResult.rows[0];
 
     // Delete from Cloudinary
-    await cloudinary.uploader.destroy(publicId);
+    try {
+      const cloudinary = (await import('@/lib/cloudinary')).default;
+      await cloudinary.uploader.destroy(photo.public_id);
+      console.log(`Deleted from Cloudinary: ${photo.public_id}`);
+    } catch (cloudinaryError) {
+      console.error(`Failed to delete from Cloudinary: ${photo.public_id}`, cloudinaryError);
+      // Continue with database deletion even if Cloudinary deletion fails
+    }
 
-    // Delete from DB
+    // Delete from database
     await pool.query('DELETE FROM photos WHERE id = $1', [id]);
 
     return NextResponse.json({ success: true });
