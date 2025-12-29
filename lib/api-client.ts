@@ -1,20 +1,27 @@
 // Determine API URL - use environment variable or detect production
-const getApiUrl = () => {
+export const getApiUrl = () => {
   // If explicitly set, use it
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
   }
   
   // In production (Vercel), use production API URL
-  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
-    return 'https://photolibrary-api.vercel.app/api';
+  // Check both NODE_ENV and VERCEL env vars (Vercel sets VERCEL=1)
+  if (typeof window === 'undefined') {
+    // Server-side: check environment variables
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+      return 'https://photolibrary-api.vercel.app/api';
+    }
+  } else {
+    // Client-side: check if we're on production domain
+    if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
+      return 'https://photolibrary-api.vercel.app/api';
+    }
   }
   
   // Default to localhost for development
   return 'http://localhost:3001/api';
 };
-
-const API_URL = getApiUrl();
 
 type RequestOptions = {
     method?: string;
@@ -25,6 +32,9 @@ type RequestOptions = {
 
 export async function fetchApi(endpoint: string, options: RequestOptions = {}) {
     const { method = 'GET', headers = {}, body, credentials = 'include' } = options;
+
+    // Get API URL dynamically at runtime (not at module load time)
+    const API_URL = getApiUrl();
 
     const config: RequestInit = {
         method,

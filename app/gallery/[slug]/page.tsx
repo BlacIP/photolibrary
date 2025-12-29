@@ -3,6 +3,7 @@
 import Header from '@/components/header';
 import GalleryClient from '@/components/gallery/GalleryClient';
 import { useEffect, useState } from 'react';
+import { getApiUrl } from '@/lib/api-client';
 
 // export const dynamic = 'force-dynamic'; // Not needed for client component
 
@@ -37,10 +38,7 @@ export default function GalleryPage({ params }: Props) {
   useEffect(() => {
     async function fetchClient() {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 
-          (process.env.NODE_ENV === 'production' || process.env.VERCEL 
-            ? 'https://photolibrary-api.vercel.app/api' 
-            : 'http://localhost:3001/api');
+        const baseUrl = getApiUrl();
         const url = `${baseUrl}/gallery/${params.slug}`;
         const response = await fetch(url);
         if (response.ok) {
@@ -63,7 +61,7 @@ export default function GalleryPage({ params }: Props) {
     setIsDownloading(true);
     try {
       // Trigger download by opening in new window or creating link
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+      const baseUrl = getApiUrl();
       const downloadUrl = `${baseUrl}/gallery/${params.slug}/download`;
 
       // Method 1: Direct navigation (simplest for zip)
