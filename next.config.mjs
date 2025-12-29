@@ -12,6 +12,17 @@ const nextConfig = {
       bodySizeLimit: '50mb',
     },
   },
+  async rewrites() {
+    const destination =
+      process.env.NEXT_PUBLIC_API_REWRITE_DEST || 'https://photolibrary-api.vercel.app';
+
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${destination.replace(/\/$/, '')}/api/:path*`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
