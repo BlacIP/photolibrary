@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { RiLockPasswordLine, RiUserLine, RiLoader4Line } from '@remixicon/react';
+import { api } from '@/lib/api-client';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,20 +18,12 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (res.ok) {
-        router.push('/admin');
-        router.refresh();
-      } else {
-        // const data = await res.json();
-      }
-    } catch {
-      setError('An error occurred. Please try again.');
+      await api.post('auth/login', { email, password });
+      router.push('/admin');
+      router.refresh();
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -1,27 +1,21 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { decrypt } from '@/lib/auth';
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Protect Admin Routes
   if (path.startsWith('/admin')) {
-    const session = request.cookies.get('session')?.value;
-    
-    // Check if session exists and is valid
-    if (!session) {
+    const token = request.cookies.get('token')?.value;
+
+    // Check if token exists
+    if (!token) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    try {
-      await decrypt(session);
-      // Valid session, proceed
-      return NextResponse.next();
-    } catch (err) {
-      // Invalid token
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
+    // In a decoupled architecture, we let the backend validate the token.
+    // If the token is invalid, API calls will fail with 401, handling the redirect there.
+    return NextResponse.next();
   }
 
   // Redirect root to admin (or home later)

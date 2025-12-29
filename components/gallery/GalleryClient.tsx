@@ -24,7 +24,15 @@ const getOptimizedUrl = (url: string, width = 800) => {
 };
 
 const getDownloadUrl = (url: string, filename: string) => {
-  return `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
+  // If it's a Cloudinary URL, use the fl_attachment transformation to force download
+  if (url.includes('cloudinary.com')) {
+    // Use fl_attachment:filename to specify the download filename
+    // We strip the extension because Cloudinary adds it based on the format
+    const nameWithoutExt = filename.split('.').slice(0, -1).join('.') || filename;
+    return url.replace('/upload/', `/upload/fl_attachment:${encodeURIComponent(nameWithoutExt)}/`);
+  }
+  // Fallback to direct URL (might open in new tab if cross-origin headers not set)
+  return url;
 };
 
 export default function GalleryClient({ photos }: GalleryClientProps) {
@@ -40,11 +48,11 @@ export default function GalleryClient({ photos }: GalleryClientProps) {
       // Get slug from URL
       const slug = window.location.pathname.split('/').pop();
       const response = await fetch(`/api/gallery/${slug}/download`);
-      
+
       if (!response.ok) {
         throw new Error('Download failed');
       }
-      
+
       // Get the blob and create download link
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -184,7 +192,7 @@ export default function GalleryClient({ photos }: GalleryClientProps) {
           </div>
         </div>
       )}
-      
+
       {/* Lightbox */}
       {lightbox && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 animate-in fade-in duration-200">
@@ -228,7 +236,7 @@ export default function GalleryClient({ photos }: GalleryClientProps) {
                 className="w-full transform transition-transform duration-500 will-change-transform group-hover:scale-105"
                 loading="lazy"
               />
-              
+
               {/* Overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                 <div className="absolute bottom-4 right-4 flex gap-2">
@@ -246,7 +254,7 @@ export default function GalleryClient({ photos }: GalleryClientProps) {
             </div>
           ))}
         </div>
-        
+
         {photos.length === 0 && (
           <div className="py-20 text-center text-text-sub-600">
             <p>No photos have been uploaded to this gallery yet.</p>

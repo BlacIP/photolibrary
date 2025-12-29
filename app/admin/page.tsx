@@ -3,15 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { api } from '@/lib/api-client';
 import { RiUser3Line, RiImageLine, RiArrowRightLine } from '@remixicon/react';
 
 interface Client {
   id: string;
   name: string;
-  eventDate: string;
-  _count: {
-    photos: number;
-  };
+  event_date: string;
+  photo_count: number;
 }
 
 export default function AdminDashboard() {
@@ -19,8 +18,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/clients')
-      .then((res) => res.json())
+    api.get('clients')
       .then((data) => {
         if (Array.isArray(data)) {
           setClients(data);
@@ -85,17 +83,17 @@ export default function AdminDashboard() {
                   <RiArrowRightLine size={20} />
                 </div>
               </div>
-              
+
               <div className="mt-4">
                 <h3 className="font-semibold text-text-strong-950">{client.name}</h3>
                 <p className="text-sm text-text-sub-600">
-                  {format(new Date(client.eventDate), 'PPP')}
+                  {format(new Date(client.event_date), 'PPP')}
                 </p>
               </div>
 
               <div className="mt-4 flex items-center gap-1.5 border-t border-stroke-soft-200 pt-4 text-xs font-medium text-text-sub-600">
                 <RiImageLine size={14} />
-                <span>{client._count.photos} Photos</span>
+                <span>{client.photo_count} Photos</span>
               </div>
             </Link>
           ))}
