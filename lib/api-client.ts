@@ -1,4 +1,20 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// Determine API URL - use environment variable or detect production
+const getApiUrl = () => {
+  // If explicitly set, use it
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  
+  // In production (Vercel), use production API URL
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+    return 'https://photolibrary-api.vercel.app/api';
+  }
+  
+  // Default to localhost for development
+  return 'http://localhost:3001/api';
+};
+
+const API_URL = getApiUrl();
 
 type RequestOptions = {
     method?: string;

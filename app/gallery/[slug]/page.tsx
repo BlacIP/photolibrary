@@ -37,7 +37,10 @@ export default function GalleryPage({ params }: Props) {
   useEffect(() => {
     async function fetchClient() {
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 
+          (process.env.NODE_ENV === 'production' || process.env.VERCEL 
+            ? 'https://photolibrary-api.vercel.app/api' 
+            : 'http://localhost:3001/api');
         const url = `${baseUrl}/gallery/${params.slug}`;
         const response = await fetch(url);
         if (response.ok) {
