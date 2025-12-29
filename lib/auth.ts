@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 // nor hashing passwords.
 
 export async function getSession() {
-  const session = cookies().get('session')?.value || cookies().get('token')?.value;
+  const session = cookies().get('token')?.value;
   if (!session) return null;
 
   // In a fully decoupled app, to get the user session, we would verify the token 
