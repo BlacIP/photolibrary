@@ -14,7 +14,10 @@ const nextConfig = {
   },
   async rewrites() {
     const destination =
-      process.env.NEXT_PUBLIC_API_REWRITE_DEST || 'https://photolibrary-api.vercel.app';
+      process.env.NEXT_PUBLIC_API_REWRITE_DEST ||
+      (process.env.NEXT_PUBLIC_API_URL
+        ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '')
+        : 'https://photolibrary-api.vercel.app');
 
     return [
       {

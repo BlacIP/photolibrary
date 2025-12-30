@@ -35,7 +35,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div>
+    <div className="w-full">
       <div className="mb-8 flex items-end justify-between">
         <div>
           <h2 className="text-title-h4 font-bold text-text-strong-950">Clients</h2>

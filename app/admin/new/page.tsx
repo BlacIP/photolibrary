@@ -41,13 +41,14 @@ export default function NewClientPage() {
 
       const payload = {
         name: formData.name,
-        date: formData.date,
+        event_date: formData.date,
         subheading: subheadingString
       };
 
       const res = await fetch('/api/clients', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
 
@@ -55,7 +56,9 @@ export default function NewClientPage() {
         const client = await res.json();
         router.push(`/admin/client/${client.id}`);
       } else {
-        alert('Failed to create client');
+        const error = await res.json().catch(() => ({}));
+        console.error('Create client error', error);
+        alert(error.error || 'Failed to create client');
       }
     } catch (err) {
       console.error(err);
