@@ -18,7 +18,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('clients')
+    api.get('admin/legacy/clients')
       .then((data) => {
         if (Array.isArray(data)) {
           setClients(data);

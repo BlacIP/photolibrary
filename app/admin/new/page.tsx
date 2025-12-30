@@ -45,7 +45,7 @@ export default function NewClientPage() {
         subheading: subheadingString
       };
 
-      const res = await fetch('/api/clients', {
+      const res = await fetch('/api/admin/legacy/clients', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

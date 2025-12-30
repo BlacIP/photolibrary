@@ -79,7 +79,7 @@ export default function ClientDetailPage() {
 
         const performUpdate = async () => {
             try {
-                await api.put(`clients/${id}`, { status: newStatus });
+                await api.put(`admin/legacy/clients/${id}`, { status: newStatus });
                 setClient({ ...client, status: newStatus as any });
                 if (newStatus === 'DELETED') {
                     showAlert('Success', 'Client deleted (Soft Delete). Public link is now disabled.');
@@ -100,7 +100,7 @@ export default function ClientDetailPage() {
     const handleSaveEdit = async () => {
         setSavingEdit(true);
         try {
-            await api.put(`clients/${id}`, { name: editName, subheading: editSubheading, event_date: editDate });
+            await api.put(`admin/legacy/clients/${id}`, { name: editName, subheading: editSubheading, event_date: editDate });
             setClient(prev => prev ? ({ ...prev, name: editName, subheading: editSubheading, event_date: editDate }) : null);
             setEditing(false);
         } catch {
@@ -123,7 +123,7 @@ export default function ClientDetailPage() {
     // Fetch client details
     const fetchClient = useCallback(async () => {
         try {
-            const data = await api.get(`clients/${id}`);
+            const data = await api.get(`admin/legacy/clients/${id}`);
             setClient({ ...data.client, photos: data.photos });
             if (data.client.header_media_url) {
                 setHeaderMedia({
@@ -145,7 +145,7 @@ export default function ClientDetailPage() {
         showConfirm('Remove Header?', 'Are you sure you want to remove the header media?', async () => {
             setUpdatingHeader(true);
             try {
-                await api.put(`clients/${id}`, {
+                await api.put(`admin/legacy/clients/${id}`, {
                     header_media_url: null,
                     header_media_type: null
                 });
@@ -188,7 +188,7 @@ export default function ClientDetailPage() {
                     await Promise.all(chunk.map(async (file) => {
                         try {
                             // Step 1: Get upload signature from server
-                            const { timestamp, signature, folder, cloud_name: cloudName, api_key: apiKey } = await api.post('photos/upload-signature', { clientId: id });
+                            const { timestamp, signature, folder, cloud_name: cloudName, api_key: apiKey } = await api.post('admin/legacy/photos/upload-signature', { clientId: id });
 
                             // Step 2: Upload directly to Cloudinary
                             const formData = new FormData();
@@ -210,7 +210,7 @@ export default function ClientDetailPage() {
                             const uploadData = await uploadRes.json();
 
                             // Step 3: Save photo record to database
-                            await api.post('photos/save-record', {
+                            await api.post('admin/legacy/photos/save-record', {
                                 clientId: id,
                                 publicId: uploadData.public_id,
                                 url: uploadData.secure_url,
@@ -268,7 +268,7 @@ export default function ClientDetailPage() {
     const setHeaderFromPhoto = async (url: string) => {
         setUpdatingHeader(true);
         try {
-            await api.put(`clients/${id}`, {
+            await api.put(`admin/legacy/clients/${id}`, {
                 header_media_url: url,
                 header_media_type: 'image'
             });
@@ -295,7 +295,7 @@ export default function ClientDetailPage() {
             }) : null);
 
             try {
-                await api.delete(`photos/${photoId}`);
+                await api.delete(`admin/legacy/photos/${photoId}`);
             } catch {
                 showAlert('Error', 'Error deleting photo');
                 // Rollback

@@ -81,7 +81,7 @@ export default function SettingsPage() {
 
     const fetchClients = async () => {
         try {
-            const data = await api.get('clients');
+            const data = await api.get('admin/legacy/clients');
             setClients(Array.isArray(data) ? data : []);
         } catch (e) { console.error(e); }
     };
@@ -110,7 +110,7 @@ export default function SettingsPage() {
         if (status === 'DELETED_FOREVER') {
             if (!confirm('Are you sure you want to permanently delete this client and all photos? This cannot be undone.')) return;
             try {
-                await api.delete(`clients/${id}`);
+                await api.delete(`admin/legacy/clients/${id}`);
                 fetchClients();
                 fetchStorage();
             } catch (e) { console.error(e); }
@@ -118,7 +118,7 @@ export default function SettingsPage() {
         }
 
         try {
-            await api.put(`clients/${id}`, { status });
+            await api.put(`admin/legacy/clients/${id}`, { status });
             fetchClients();
         } catch (e) { console.error(e); }
     };
