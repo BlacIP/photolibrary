@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Settings,
   HelpCircle,
+  Building2,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -38,10 +39,16 @@ function buildNavData(activePath: string | null): SidebarData {
   return {
     navMain: [
       {
-        title: "Dashboard",
+        title: "Clients",
         url: "/admin",
         icon: LayoutDashboard,
         isActive: activePath === "/admin" || activePath?.startsWith("/admin/client") || activePath?.startsWith("/admin/new"),
+      },
+      {
+        title: "Studios",
+        url: "/admin/studios",
+        icon: Building2,
+        isActive: activePath?.startsWith("/admin/studios"),
       },
       {
         title: "Settings",
