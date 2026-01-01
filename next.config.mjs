@@ -6,6 +6,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  transpilePackages: ['photostudio-shared'],
   // Increase body size limit for file uploads
   experimental: {
     serverActions: {

@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
+import { useCachedSWR } from "@/lib/hooks/use-cached-swr";
 import { RiArrowLeftLine, RiHardDriveLine, RiImageLine } from "@remixicon/react";
-import { api } from "@/lib/api-client";
 
 type ClientStats = {
   client_id: string;
@@ -24,8 +23,11 @@ export default function StudioClientDetailPage() {
   const studioId = params.studioId as string;
   const clientId = params.clientId as string;
 
-  const [client, setClient] = useState<ClientStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: client, error, isLoading } = useCachedSWR<ClientStats>(
+    studioId && clientId ? `admin/studios/${studioId}/clients/${clientId}` : null,
+    { refreshInterval: 120_000 },
+    { ttlMs: 120_000 },
+  );
 
   const formatBytes = (bytes: number) => {
     if (!bytes) return "0 Bytes";
@@ -35,16 +37,19 @@ export default function StudioClientDetailPage() {
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
   };
 
-  useEffect(() => {
-    api
-      .get(`admin/studios/${studioId}/clients/${clientId}`)
-      .then((data) => setClient(data))
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
-  }, [studioId, clientId]);
-
-  if (loading) {
+  if (isLoading) {
     return <div className="p-8 text-center text-text-sub-600">Loading client...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 text-text-sub-600">
+        Failed to load client.{" "}
+        <Link className="text-primary-base" href={`/admin/studios/${studioId}`}>
+          Back to studio
+        </Link>
+      </div>
+    );
   }
 
   if (!client) {

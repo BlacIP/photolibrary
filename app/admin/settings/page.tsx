@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { RiAddLine, RiUserLine, RiShieldUserLine, RiCheckLine, RiEdit2Line, RiHardDriveLine, RiArchiveLine, RiDeleteBinLine, RiRefreshLine } from '@remixicon/react';
 import * as Modal from '@/components/ui/modal';
 import { api } from '@/lib/api-client';
+import { useSession } from '@/lib/hooks/use-session';
 import ProfilePage from '../profile/page'; // Reuse existing Profile Page logic
 
 interface User {
@@ -17,7 +18,7 @@ interface User {
 }
 
 export default function SettingsPage() {
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const { data: currentUser, error: sessionError } = useSession();
     const [users, setUsers] = useState<User[]>([]);
     const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'storage' | 'archive' | 'recycle'>('profile');
     const [clients, setClients] = useState<any[]>([]); // Using any for brevity or defines interface
@@ -45,15 +46,6 @@ export default function SettingsPage() {
         { id: 'manage_clients', label: 'Manage Clients (Create, Edit, Delete)' },
         { id: 'manage_photos', label: 'Manage Photos (Upload, Delete)' },
     ];
-
-    const fetchCurrentUser = async () => {
-        try {
-            const data = await api.get('auth/me');
-            setCurrentUser(data);
-        } catch (e) {
-            console.error(e);
-        }
-    };
 
     const fetchUsers = async () => {
         try {
@@ -124,11 +116,12 @@ export default function SettingsPage() {
     };
 
     useEffect(() => {
-        fetchCurrentUser().then(() => {
+        if (!currentUser) return;
+        fetchClients();
+        if (currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'SUPER_ADMIN_MAX') {
             fetchUsers();
-            fetchClients();
-        });
-    }, []);
+        }
+    }, [currentUser]);
 
     useEffect(() => {
         if (activeTab === 'storage') fetchStorage();
@@ -191,6 +184,7 @@ export default function SettingsPage() {
         }
     };
 
+    if (sessionError) return <div className="p-8">Failed to load session.</div>;
     if (!currentUser) return <div className="p-8">Loading...</div>;
 
     const isSuperAdmin = currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'SUPER_ADMIN_MAX';

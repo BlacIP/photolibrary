@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
+import { useCachedSWR } from "@/lib/hooks/use-cached-swr";
 import {
   RiArrowLeftLine,
   RiHardDriveLine,
@@ -52,16 +53,17 @@ type StudioOwner = {
   created_at: string;
 };
 
+type StudioDetailResponse = {
+  studio: Studio;
+  stats: StudioStats;
+  owners: StudioOwner[];
+};
+
 export default function StudioDetailPage() {
   const params = useParams();
   const router = useRouter();
   const studioId = params.studioId as string;
 
-  const [studio, setStudio] = useState<Studio | null>(null);
-  const [stats, setStats] = useState<StudioStats | null>(null);
-  const [clients, setClients] = useState<StudioClient[]>([]);
-  const [owners, setOwners] = useState<StudioOwner[]>([]);
-  const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const formatBytes = (bytes: number) => {
@@ -72,23 +74,32 @@ export default function StudioDetailPage() {
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
   };
 
-  const fetchStudio = async () => {
-    const data = await api.get(`admin/studios/${studioId}`);
-    setStudio(data.studio);
-    setStats(data.stats);
-    setOwners(Array.isArray(data.owners) ? data.owners : []);
-  };
+  const {
+    data: studioData,
+    error: studioError,
+    isLoading: studioLoading,
+    mutate: mutateStudio,
+  } = useCachedSWR<StudioDetailResponse>(
+    studioId ? `admin/studios/${studioId}` : null,
+    { refreshInterval: 120_000 },
+    { ttlMs: 120_000 },
+  );
+  const {
+    data: clientsData,
+    error: clientsError,
+    isLoading: clientsLoading,
+  } = useCachedSWR<StudioClient[]>(
+    studioId ? `admin/studios/${studioId}/clients` : null,
+    { refreshInterval: 120_000 },
+    { ttlMs: 120_000 },
+  );
 
-  const fetchClients = async () => {
-    const data = await api.get(`admin/studios/${studioId}/clients`);
-    setClients(Array.isArray(data) ? data : []);
-  };
-
-  useEffect(() => {
-    Promise.all([fetchStudio(), fetchClients()])
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
-  }, [studioId]);
+  const studio = studioData?.studio ?? null;
+  const stats = studioData?.stats ?? null;
+  const owners = Array.isArray(studioData?.owners) ? studioData?.owners : [];
+  const clients = Array.isArray(clientsData) ? clientsData : [];
+  const loading = studioLoading || clientsLoading;
+  const loadError = studioError || clientsError;
 
   const updateStatus = async (status: string) => {
     if (!studio) return;
@@ -101,7 +112,7 @@ export default function StudioDetailPage() {
     setUpdatingStatus(true);
     try {
       await api.patch(`admin/studios/${studioId}/status`, { status });
-      await fetchStudio();
+      await mutateStudio();
     } catch (err) {
       console.error(err);
       alert("Failed to update studio status");
@@ -112,6 +123,20 @@ export default function StudioDetailPage() {
 
   if (loading) {
     return <div className="p-8 text-center text-text-sub-600">Loading studio...</div>;
+  }
+
+  if (loadError && !studio) {
+    return (
+      <div className="p-8">
+        <p className="text-text-sub-600">Failed to load studio.</p>
+        <button
+          onClick={() => router.push("/admin")}
+          className="mt-4 text-sm text-primary-base hover:text-primary-dark"
+        >
+          Back to studios
+        </button>
+      </div>
+    );
   }
 
   if (!studio) {

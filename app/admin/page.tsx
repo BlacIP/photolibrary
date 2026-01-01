@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { api } from '@/lib/api-client';
+import { useCachedSWR } from '@/lib/hooks/use-cached-swr';
 import { RiUser3Line, RiImageLine, RiArrowRightLine } from '@remixicon/react';
 
 interface Client {
@@ -14,21 +13,9 @@ interface Client {
 }
 
 export default function AdminDashboard() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    api.get('admin/legacy/clients')
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setClients(data);
-        } else {
-          console.error('Failed to load clients', data);
-        }
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data, error } = useCachedSWR<Client[]>('admin/legacy/clients');
+  const clients = Array.isArray(data) ? data : [];
+  const loading = !data && !error;
 
   if (loading) {
     return <div className="p-8 text-center text-text-sub-600">Loading clients...</div>;
@@ -51,7 +38,11 @@ export default function AdminDashboard() {
         </Link>
       </div>
 
-      {clients.length === 0 ? (
+      {error ? (
+        <div className="rounded-lg border border-error-base/30 bg-error-base/10 px-4 py-3 text-sm text-error-base">
+          {error.message || 'Unable to load clients.'}
+        </div>
+      ) : clients.length === 0 ? (
         <div className="rounded-xl border border-dashed border-stroke-soft-200 bg-bg-white-0 p-12 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-bg-weak-50">
             <RiUser3Line className="text-text-sub-600" />

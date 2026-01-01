@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3002",
+    "dev": "pnpm run shared:local && next dev -p 3002",
+    "dev:github": "pnpm run shared:github && next dev -p 3002",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "shared:local": "node scripts/use-shared.js local",
+    "shared:github": "node scripts/use-shared.js github",
     "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache"
   },
   "dependencies": {
@@ -38,12 +41,14 @@
     "merge-refs": "^1.3.0",
     "next": "14.2.35",
     "next-themes": "^0.4.3",
+    "photostudio-shared": "github:BlacIP/photostudio-shared#main",
     "react": "18.3.1",
     "react-aria-components": "^1.4.1",
     "react-day-picker": "8.10.1",
     "react-dom": "18.3.1",
     "react-otp-input": "^3.1.1",
     "sonner": "^1.7.0",
+    "swr": "^2.2.5",
     "tailwind-merge": "^2.5.4",
     "tailwind-variants": "^0.2.1"
   },

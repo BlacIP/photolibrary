@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import {
   Folder,
   MoreHorizontal,
@@ -35,6 +36,7 @@ export function NavProjects({
   }[]
 }) {
   const { isMobile } = useSidebar()
+  const isExternalUrl = (url: string) => url.startsWith("http") || url.startsWith("mailto:")
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -43,10 +45,17 @@ export function NavProjects({
         {projects.map((item) => (
           <SidebarMenuItem key={item.name}>
             <SidebarMenuButton asChild>
-              <a href={item.url}>
-                <item.icon />
-                <span>{item.name}</span>
-              </a>
+              {isExternalUrl(item.url) ? (
+                <a href={item.url}>
+                  <item.icon />
+                  <span>{item.name}</span>
+                </a>
+              ) : (
+                <Link href={item.url}>
+                  <item.icon />
+                  <span>{item.name}</span>
+                </Link>
+              )}
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
 
   // Protect Admin Routes
   if (path.startsWith('/admin')) {
-    const token = request.cookies.get('token')?.value;
+    const token = request.cookies.get('admin_token')?.value;
 
     // Check if token exists
     if (!token) {

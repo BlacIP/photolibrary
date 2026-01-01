@@ -263,6 +263,8 @@ const config = {
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './utils/**/*.{js,ts,jsx,tsx,mdx}',
+    '../photostudio-shared/**/*.{js,ts,jsx,tsx,mdx}',
+    './node_modules/photostudio-shared/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
   	colors: {

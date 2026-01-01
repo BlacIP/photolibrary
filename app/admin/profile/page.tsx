@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { RiUserLine, RiLockPasswordLine, RiLoader4Line, RiCheckLine, RiEdit2Line } from '@remixicon/react';
 import { api } from '@/lib/api-client';
+import { useSession } from '@/lib/hooks/use-session';
 
 export default function ProfilePage() {
+  const { data: session, error: sessionError } = useSession();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -20,17 +22,17 @@ export default function ProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
-    api.get('auth/me')
-      .then(data => {
-        setUser(data);
-        // Split name into first/last for the form
-        const names = (data.name || '').split(' ');
-        setFirstName(names[0] || '');
-        setLastName(names.slice(1).join(' ') || '');
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+    if (sessionError) {
+      setLoading(false);
+      return;
+    }
+    if (!session || user) return;
+    setUser(session);
+    const names = (session.name || '').split(' ');
+    setFirstName(names[0] || '');
+    setLastName(names.slice(1).join(' ') || '');
+    setLoading(false);
+  }, [session, sessionError, user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();

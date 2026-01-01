@@ -4,12 +4,14 @@ import { usePathname } from 'next/navigation';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
 import { AppSidebar } from '@/components/app-sidebar';
+import SessionGuard from '@/components/session-guard';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
     <SidebarProvider>
+      <SessionGuard />
       <div className="flex w-full min-h-screen bg-bg-weak-50 text-text-strong-950">
         <div className="flex w-full px-2 md:px-3">
           <AppSidebar activePath={pathname} />

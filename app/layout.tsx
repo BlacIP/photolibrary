@@ -6,6 +6,7 @@ import { ThemeProvider } from 'next-themes';
 import { cn } from '@/utils/cn';
 import { Provider as TooltipProvider } from '@/components/ui/tooltip';
 import { NotificationProvider } from '@/components/ui/notification-provider';
+import AppProviders from '@/components/app-providers';
 
 
 
@@ -38,12 +39,13 @@ export default function RootLayout({
     >
       <body className='bg-bg-white-0 text-text-strong-950'>
         <ThemeProvider attribute='class' forcedTheme="light" enableSystem={false}>
-          <TooltipProvider>
-            <div className='flex min-h-screen flex-col'>
-              <main className='flex flex-1 flex-col'>{children}</main>
-            </div>
-
-          </TooltipProvider>
+          <AppProviders>
+            <TooltipProvider>
+              <div className='flex min-h-screen flex-col'>
+                <main className='flex flex-1 flex-col'>{children}</main>
+              </div>
+            </TooltipProvider>
+          </AppProviders>
         </ThemeProvider>
         <NotificationProvider />
       </body>
