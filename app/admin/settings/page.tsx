@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { RiAddLine, RiUserLine, RiShieldUserLine, RiCheckLine, RiEdit2Line, RiHardDriveLine, RiArchiveLine, RiDeleteBinLine, RiRefreshLine } from '@remixicon/react';
+import { RiAddLine, RiUserLine, RiShieldUserLine, RiCheckLine, RiEdit2Line, RiRefreshLine } from '@remixicon/react';
 import * as Modal from '@/components/ui/modal';
 import { api } from '@/lib/api-client';
 import { useSession } from '@/lib/hooks/use-session';
@@ -19,6 +19,7 @@ interface User {
 
 export default function SettingsPage() {
     const { data: currentUser, error: sessionError } = useSession();
+    const [mounted, setMounted] = useState(false);
     const [users, setUsers] = useState<User[]>([]);
     const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'storage' | 'archive' | 'recycle'>('profile');
     const [clients, setClients] = useState<any[]>([]); // Using any for brevity or defines interface
@@ -116,6 +117,10 @@ export default function SettingsPage() {
     };
 
     useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
         if (!currentUser) return;
         fetchClients();
         if (currentUser.role === 'SUPER_ADMIN' || currentUser.role === 'SUPER_ADMIN_MAX') {
@@ -184,6 +189,7 @@ export default function SettingsPage() {
         }
     };
 
+    if (!mounted) return <div className="p-8">Loading...</div>;
     if (sessionError) return <div className="p-8">Failed to load session.</div>;
     if (!currentUser) return <div className="p-8">Loading...</div>;
 
@@ -191,14 +197,20 @@ export default function SettingsPage() {
 
     return (
         <div>
-            <div className="mb-6">
-                <h1 className="text-title-h4 font-bold text-text-strong-950 mb-4">Settings</h1>
+            <div className="mb-8 space-y-4">
+                <div className="rounded-2xl border border-stroke-soft-200 bg-bg-white-0 p-6 shadow-sm">
+                    <p className="text-xs uppercase tracking-[0.3em] text-text-sub-600">Admin console</p>
+                    <h1 className="mt-2 text-title-h4 font-bold text-text-strong-950">Settings</h1>
+                    <p className="mt-2 text-sm text-text-sub-600">
+                        Manage your profile, admin access, and storage lifecycle in one place.
+                    </p>
+                </div>
 
-                <div className="flex flex-wrap gap-1 bg-bg-weak-50 p-1 rounded-lg w-full sm:w-fit">
+                <div className="flex flex-wrap gap-2 rounded-full bg-bg-weak-50 p-1 w-full sm:w-fit">
                     <button
                         onClick={() => setActiveTab('profile')}
-                        className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'profile'
-                            ? 'bg-white text-text-strong-950 shadow-sm'
+                        className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-full transition-colors ${activeTab === 'profile'
+                            ? 'bg-bg-white-0 text-text-strong-950 shadow-sm ring-1 ring-stroke-soft-200'
                             : 'text-text-sub-600 hover:text-text-strong-950'
                             }`}
                     >
@@ -207,8 +219,8 @@ export default function SettingsPage() {
                     {isSuperAdmin && (
                         <button
                             onClick={() => setActiveTab('team')}
-                            className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'team'
-                                ? 'bg-white text-text-strong-950 shadow-sm'
+                            className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-full transition-colors ${activeTab === 'team'
+                                ? 'bg-bg-white-0 text-text-strong-950 shadow-sm ring-1 ring-stroke-soft-200'
                                 : 'text-text-sub-600 hover:text-text-strong-950'
                                 }`}
                         >
@@ -218,8 +230,8 @@ export default function SettingsPage() {
                     {isSuperAdmin && (
                         <button
                             onClick={() => setActiveTab('storage')}
-                            className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'storage'
-                                ? 'bg-white text-text-strong-950 shadow-sm'
+                            className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-full transition-colors ${activeTab === 'storage'
+                                ? 'bg-bg-white-0 text-text-strong-950 shadow-sm ring-1 ring-stroke-soft-200'
                                 : 'text-text-sub-600 hover:text-text-strong-950'
                                 }`}
                         >
@@ -228,8 +240,8 @@ export default function SettingsPage() {
                     )}
                     <button
                         onClick={() => setActiveTab('archive')}
-                        className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'archive'
-                            ? 'bg-white text-text-strong-950 shadow-sm'
+                        className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-full transition-colors ${activeTab === 'archive'
+                            ? 'bg-bg-white-0 text-text-strong-950 shadow-sm ring-1 ring-stroke-soft-200'
                             : 'text-text-sub-600 hover:text-text-strong-950'
                             }`}
                     >
@@ -237,8 +249,8 @@ export default function SettingsPage() {
                     </button>
                     <button
                         onClick={() => setActiveTab('recycle')}
-                        className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-md transition-colors ${activeTab === 'recycle'
-                            ? 'bg-white text-text-strong-950 shadow-sm'
+                        className={`flex-1 sm:flex-none px-4 py-2 text-sm font-medium rounded-full transition-colors ${activeTab === 'recycle'
+                            ? 'bg-bg-white-0 text-text-strong-950 shadow-sm ring-1 ring-stroke-soft-200'
                             : 'text-text-sub-600 hover:text-text-strong-950'
                             }`}
                     >
@@ -255,89 +267,96 @@ export default function SettingsPage() {
 
             {activeTab === 'team' && isSuperAdmin && (
                 <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                    <div className="mb-6 flex items-center justify-between">
-                        <h2 className="text-lg font-semibold text-text-strong-950">Team Management</h2>
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="flex items-center gap-2 rounded-lg bg-primary-base px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark"
-                        >
-                            <RiAddLine size={18} />
-                            Add Admin
-                        </button>
-                    </div>
+                    <div className="rounded-2xl border border-stroke-soft-200 bg-bg-white-0 shadow-sm">
+                        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-stroke-soft-200 px-6 py-4">
+                            <div>
+                                <h2 className="text-lg font-semibold text-text-strong-950">Team management</h2>
+                                <p className="mt-1 text-sm text-text-sub-600">
+                                    Invite admins and manage access levels for this studio.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setIsModalOpen(true)}
+                                className="flex items-center gap-2 rounded-full bg-primary-base px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark"
+                            >
+                                <RiAddLine size={18} />
+                                Add Admin
+                            </button>
+                        </div>
 
-                    <div className="rounded-xl border border-stroke-soft-200 bg-bg-white-0 shadow-sm overflow-x-auto">
-                        <table className="w-full text-left text-sm min-w-[600px]">
-                            <thead className="bg-bg-weak-50 text-text-sub-600">
-                                <tr>
-                                    <th className="px-6 py-4 font-medium">User</th>
-                                    <th className="px-6 py-4 font-medium">Role</th>
-                                    <th className="px-6 py-4 font-medium">Permissions</th>
-                                    <th className="px-6 py-4 font-medium">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-stroke-soft-200">
-                                {users.map((user) => (
-                                    <tr key={user.id} className="hover:bg-bg-weak-50/50">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-weak/20 text-primary-base font-semibold text-xs">
-                                                    {user.first_name ? user.first_name[0] : <RiUserLine size={16} />}
-                                                </div>
-                                                <div>
-                                                    <div className="font-medium text-text-strong-950">
-                                                        {user.first_name ? `${user.first_name} ${user.last_name}` : 'No Name'}
-                                                    </div>
-                                                    <div className="text-xs text-text-sub-600">{user.email}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${user.role === 'SUPER_ADMIN_MAX'
-                                                ? 'bg-amber-100 text-amber-700 border border-amber-200'
-                                                : user.role === 'SUPER_ADMIN'
-                                                    ? 'bg-purple-100 text-purple-700'
-                                                    : 'bg-bg-weak-100 text-text-sub-600'
-                                                }`}>
-                                                {user.role === 'SUPER_ADMIN_MAX' && <RiShieldUserLine size={14} />}
-                                                {user.role === 'SUPER_ADMIN' && <RiShieldUserLine size={14} />}
-                                                {user.role === 'SUPER_ADMIN_MAX' ? 'Owner' : user.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-text-sub-600">
-                                            {(user.role === 'SUPER_ADMIN' || user.role === 'SUPER_ADMIN_MAX') ? (
-                                                <span className={`text-xs italic ${user.role === 'SUPER_ADMIN_MAX' ? 'text-amber-600 font-medium' : 'text-purple-600'}`}>
-                                                    {user.role === 'SUPER_ADMIN_MAX' ? 'System Owner' : 'Full Access'}
-                                                </span>
-                                            ) : (
-                                                <div className="flex flex-wrap gap-1">
-                                                    {user.permissions && user.permissions.length > 0 ? (
-                                                        user.permissions.map(p => (
-                                                            <span key={p} className="bg-bg-weak-100 px-1.5 py-0.5 rounded text-xs text-text-strong-950 border border-stroke-soft-200">
-                                                                {p === 'manage_clients' ? 'Clients' : p === 'manage_photos' ? 'Photos' : p}
-                                                            </span>
-                                                        ))
-                                                    ) : (
-                                                        <span className="text-xs text-text-weak-400">View Only</span>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {user.role !== 'SUPER_ADMIN_MAX' && (
-                                                <button
-                                                    onClick={() => openPermModal(user)}
-                                                    className="flex items-center gap-1 text-text-sub-600 hover:text-primary-base font-medium text-xs bg-bg-weak-50 px-2 py-1 rounded border border-transparent hover:border-stroke-soft-200 transition-colors"
-                                                >
-                                                    <RiEdit2Line size={14} /> Roles
-                                                </button>
-                                            )}
-                                            {/* We could add Reset Password here too if needed, but omitted to save space for now */}
-                                        </td>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm min-w-[600px]">
+                                <thead className="bg-bg-weak-50/70 text-text-sub-600">
+                                    <tr>
+                                        <th className="px-6 py-4 font-medium">User</th>
+                                        <th className="px-6 py-4 font-medium">Role</th>
+                                        <th className="px-6 py-4 font-medium">Permissions</th>
+                                        <th className="px-6 py-4 font-medium">Actions</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-stroke-soft-200">
+                                    {users.map((user) => (
+                                        <tr key={user.id} className="hover:bg-bg-weak-50/40">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-weak/20 text-primary-base font-semibold text-xs">
+                                                        {user.first_name ? user.first_name[0] : <RiUserLine size={16} />}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-medium text-text-strong-950">
+                                                            {user.first_name ? `${user.first_name} ${user.last_name}` : 'No Name'}
+                                                        </div>
+                                                        <div className="text-xs text-text-sub-600">{user.email}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${user.role === 'SUPER_ADMIN_MAX'
+                                                    ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                                                    : user.role === 'SUPER_ADMIN'
+                                                        ? 'bg-purple-100 text-purple-700'
+                                                        : 'bg-bg-weak-100 text-text-sub-600'
+                                                    }`}>
+                                                    {user.role === 'SUPER_ADMIN_MAX' && <RiShieldUserLine size={14} />}
+                                                    {user.role === 'SUPER_ADMIN' && <RiShieldUserLine size={14} />}
+                                                    {user.role === 'SUPER_ADMIN_MAX' ? 'Owner' : user.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-text-sub-600">
+                                                {(user.role === 'SUPER_ADMIN' || user.role === 'SUPER_ADMIN_MAX') ? (
+                                                    <span className={`text-xs italic ${user.role === 'SUPER_ADMIN_MAX' ? 'text-amber-600 font-medium' : 'text-purple-600'}`}>
+                                                        {user.role === 'SUPER_ADMIN_MAX' ? 'System Owner' : 'Full Access'}
+                                                    </span>
+                                                ) : (
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {user.permissions && user.permissions.length > 0 ? (
+                                                            user.permissions.map(p => (
+                                                                <span key={p} className="bg-bg-weak-100 px-1.5 py-0.5 rounded text-xs text-text-strong-950 border border-stroke-soft-200">
+                                                                    {p === 'manage_clients' ? 'Clients' : p === 'manage_photos' ? 'Photos' : p}
+                                                                </span>
+                                                            ))
+                                                        ) : (
+                                                            <span className="text-xs text-text-weak-400">View Only</span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {user.role !== 'SUPER_ADMIN_MAX' && (
+                                                    <button
+                                                        onClick={() => openPermModal(user)}
+                                                        className="flex items-center gap-1 rounded-full border border-stroke-soft-200 bg-bg-weak-50 px-2.5 py-1 text-xs font-medium text-text-sub-600 transition-colors hover:text-primary-base"
+                                                    >
+                                                        <RiEdit2Line size={14} /> Roles
+                                                    </button>
+                                                )}
+                                                {/* We could add Reset Password here too if needed, but omitted to save space for now */}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             )}
@@ -345,13 +364,13 @@ export default function SettingsPage() {
             {activeTab === 'storage' && (
                 <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6">
                     {loadingStorage && (
-                        <div className="p-6 rounded-xl border border-dashed border-stroke-soft-200 bg-bg-white-0 text-text-sub-600">
+                        <div className="p-6 rounded-2xl border border-dashed border-stroke-soft-200 bg-bg-white-0 text-text-sub-600 shadow-sm">
                             Loading storage stats...
                         </div>
                     )}
 
                     {!loadingStorage && !storageStats && (
-                        <div className="p-6 rounded-xl border border-dashed border-stroke-soft-200 bg-bg-white-0 text-text-sub-600">
+                        <div className="p-6 rounded-2xl border border-dashed border-stroke-soft-200 bg-bg-white-0 text-text-sub-600 shadow-sm">
                             Storage stats not available yet.
                         </div>
                     )}
@@ -359,7 +378,7 @@ export default function SettingsPage() {
                     {!loadingStorage && storageStats && (
                         <>
                             {/* Top Row: Cloudinary Usage (Full Width) */}
-                            <div className="bg-bg-white-0 p-4 rounded-xl border border-stroke-soft-200 mb-4">
+                            <div className="bg-bg-white-0 p-6 rounded-2xl border border-stroke-soft-200 mb-4 shadow-sm">
                                 <p className="text-xs text-text-sub-600 font-medium uppercase tracking-wider">Cloudinary Storage</p>
                                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                                     <div>
@@ -408,28 +427,28 @@ export default function SettingsPage() {
 
                             {/* Bottom Row: App Stats */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="bg-bg-white-0 p-4 rounded-xl border border-stroke-soft-200">
+                                <div className="bg-bg-white-0 p-5 rounded-2xl border border-stroke-soft-200 shadow-sm">
                                     <p className="text-xs text-text-sub-600 font-medium uppercase tracking-wider">Database Media</p>
                                     <p className="text-2xl font-bold text-text-strong-950 mt-1">{formatBytes(storageStats.totalBytes)}</p>
                                     <p className="text-sm text-text-sub-600 mt-1">{storageStats.totalPhotos} Photos</p>
                                 </div>
-                                <div className="bg-bg-white-0 p-4 rounded-xl border border-stroke-soft-200">
+                                <div className="bg-bg-white-0 p-5 rounded-2xl border border-stroke-soft-200 shadow-sm">
                                     <p className="text-xs text-text-sub-600 font-medium uppercase tracking-wider">Archived Content</p>
                                     <p className="text-2xl font-bold text-text-strong-950 mt-1">{formatBytes(storageStats.statusStats.archived_bytes)}</p>
                                 </div>
-                                <div className="bg-bg-white-0 p-4 rounded-xl border border-stroke-soft-200">
+                                <div className="bg-bg-white-0 p-5 rounded-2xl border border-stroke-soft-200 shadow-sm">
                                     <p className="text-xs text-text-sub-600 font-medium uppercase tracking-wider">Recycle Bin</p>
                                     <p className="text-2xl font-bold text-text-strong-950 mt-1">{formatBytes(storageStats.statusStats.deleted_bytes)}</p>
                                 </div>
                             </div>
 
-                            <div className="bg-bg-white-0 rounded-xl border border-stroke-soft-200 overflow-x-auto">
+                            <div className="bg-bg-white-0 rounded-2xl border border-stroke-soft-200 overflow-x-auto shadow-sm">
                                 <div className="min-w-[700px]">
                                     <div className="px-6 py-4 border-b border-stroke-soft-200">
                                         <h3 className="font-semibold text-text-strong-950">Storage by Client</h3>
                                     </div>
                                     <table className="w-full text-left text-sm">
-                                        <thead className="bg-bg-weak-50 text-text-sub-600">
+                                        <thead className="bg-bg-weak-50/70 text-text-sub-600">
                                             <tr>
                                                 <th className="px-6 py-3 font-medium">Client</th>
                                                 <th className="px-6 py-3 font-medium">Status</th>
@@ -461,72 +480,81 @@ export default function SettingsPage() {
 
             {(activeTab === 'archive' || activeTab === 'recycle') && (
                 <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-lg font-semibold text-text-strong-950">{activeTab === 'archive' ? 'Archive' : 'Recycle Bin'}</h2>
-                        <button onClick={runCleanup} className="flex items-center gap-2 text-sm text-text-sub-600 hover:text-text-strong-950">
-                            <RiRefreshLine size={16} /> Run Lifecycle Cleanup
-                        </button>
-                    </div>
-                    <p className="text-sm text-text-sub-600 mb-6">
-                        {activeTab === 'archive'
-                            ? 'Clients in Archive are kept for 30 days before moving to Recycle Bin.'
-                            : 'Clients in Recycle Bin are kept for 7 days before permanent deletion.'}
-                    </p>
+                    <div className="rounded-2xl border border-stroke-soft-200 bg-bg-white-0 shadow-sm">
+                        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-stroke-soft-200 px-6 py-4">
+                            <div>
+                                <h2 className="text-lg font-semibold text-text-strong-950">
+                                    {activeTab === 'archive' ? 'Archive' : 'Recycle Bin'}
+                                </h2>
+                                <p className="mt-1 text-sm text-text-sub-600">
+                                    {activeTab === 'archive'
+                                        ? 'Clients in Archive are kept for 30 days before moving to Recycle Bin.'
+                                        : 'Clients in Recycle Bin are kept for 7 days before permanent deletion.'}
+                                </p>
+                            </div>
+                            <button
+                                onClick={runCleanup}
+                                className="flex items-center gap-2 rounded-full border border-stroke-soft-200 bg-bg-weak-50 px-4 py-2 text-sm text-text-sub-600 hover:text-text-strong-950"
+                            >
+                                <RiRefreshLine size={16} /> Run Lifecycle Cleanup
+                            </button>
+                        </div>
 
-                    <div className="bg-bg-white-0 rounded-xl border border-stroke-soft-200 overflow-x-auto">
-                        <table className="w-full text-left text-sm min-w-[700px]">
-                            <thead className="bg-bg-weak-50 text-text-sub-600">
-                                <tr>
-                                    <th className="px-6 py-3 font-medium">Client</th>
-                                    <th className="px-6 py-3 font-medium">Status Updated</th>
-                                    <th className="px-6 py-3 font-medium">Auto-Move In</th>
-                                    <th className="px-6 py-3 font-medium text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-stroke-soft-200">
-                                {clients.filter(c => c.status === (activeTab === 'archive' ? 'ARCHIVED' : 'DELETED')).map(client => (
-                                    <tr key={client.id}>
-                                        <td className="px-6 py-3 font-medium text-text-strong-950">{client.name}</td>
-                                        <td className="px-6 py-3 text-text-sub-600">{new Date(client.statusUpdatedAt).toLocaleDateString()}</td>
-                                        <td className="px-6 py-3 text-text-sub-600">
-                                            {calculateDaysLeft(client.statusUpdatedAt, activeTab === 'archive' ? 30 : 7)} Days
-                                        </td>
-                                        <td className="px-6 py-3 text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => updateClientStatus(client.id, 'ACTIVE')}
-                                                    className="px-3 py-1.5 text-xs font-semibold text-text-strong-950 bg-bg-weak-50 rounded hover:bg-bg-weak-100 border border-stroke-soft-200"
-                                                >
-                                                    Restore
-                                                </button>
-                                                {activeTab === 'archive' ? (
-                                                    <button
-                                                        onClick={() => updateClientStatus(client.id, 'DELETED')}
-                                                        className="px-3 py-1.5 text-xs font-semibold text-error-base hover:bg-error-weak/10 rounded"
-                                                    >
-                                                        Move to Bin
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => updateClientStatus(client.id, 'DELETED_FOREVER')}
-                                                        className="px-3 py-1.5 text-xs font-semibold text-error-base hover:bg-error-weak/10 rounded"
-                                                    >
-                                                        Delete Forever
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {clients.filter(c => c.status === (activeTab === 'archive' ? 'ARCHIVED' : 'DELETED')).length === 0 && (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm min-w-[700px]">
+                                <thead className="bg-bg-weak-50/70 text-text-sub-600">
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-8 text-center text-text-sub-600">
-                                            No clients in {activeTab === 'archive' ? 'Archive' : 'Recycle Bin'}.
-                                        </td>
+                                        <th className="px-6 py-3 font-medium">Client</th>
+                                        <th className="px-6 py-3 font-medium">Status Updated</th>
+                                        <th className="px-6 py-3 font-medium">Auto-Move In</th>
+                                        <th className="px-6 py-3 font-medium text-right">Actions</th>
                                     </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-stroke-soft-200">
+                                    {clients.filter(c => c.status === (activeTab === 'archive' ? 'ARCHIVED' : 'DELETED')).map(client => (
+                                        <tr key={client.id}>
+                                            <td className="px-6 py-3 font-medium text-text-strong-950">{client.name}</td>
+                                            <td className="px-6 py-3 text-text-sub-600">{new Date(client.statusUpdatedAt).toLocaleDateString()}</td>
+                                            <td className="px-6 py-3 text-text-sub-600">
+                                                {calculateDaysLeft(client.statusUpdatedAt, activeTab === 'archive' ? 30 : 7)} Days
+                                            </td>
+                                            <td className="px-6 py-3 text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => updateClientStatus(client.id, 'ACTIVE')}
+                                                        className="rounded-full border border-stroke-soft-200 bg-bg-weak-50 px-3 py-1.5 text-xs font-semibold text-text-strong-950 hover:bg-bg-weak-100"
+                                                    >
+                                                        Restore
+                                                    </button>
+                                                    {activeTab === 'archive' ? (
+                                                        <button
+                                                            onClick={() => updateClientStatus(client.id, 'DELETED')}
+                                                            className="rounded-full px-3 py-1.5 text-xs font-semibold text-error-base hover:bg-error-weak/10"
+                                                        >
+                                                            Move to Bin
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => updateClientStatus(client.id, 'DELETED_FOREVER')}
+                                                            className="rounded-full px-3 py-1.5 text-xs font-semibold text-error-base hover:bg-error-weak/10"
+                                                        >
+                                                            Delete Forever
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {clients.filter(c => c.status === (activeTab === 'archive' ? 'ARCHIVED' : 'DELETED')).length === 0 && (
+                                        <tr>
+                                            <td colSpan={4} className="px-6 py-8 text-center text-text-sub-600">
+                                                No clients in {activeTab === 'archive' ? 'Archive' : 'Recycle Bin'}.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             )}

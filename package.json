@@ -3,13 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "pnpm run shared:local && next dev -p 3002",
+    "dev": "node scripts/dev-with-watch.js",
+    "dev:plain": "pnpm run shared:local && next dev -p 3002",
+    "dev:watch": "node scripts/dev-with-watch.js",
     "dev:github": "pnpm run shared:github && next dev -p 3002",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "shared:local": "node scripts/use-shared.js local",
     "shared:github": "node scripts/use-shared.js github",
+    "shared:watch": "node scripts/watch-shared.js",
     "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache"
   },
   "dependencies": {

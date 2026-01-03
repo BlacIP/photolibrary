@@ -8,18 +8,8 @@ import {
   Building2,
 } from "lucide-react"
 
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
 import { UserNav } from "@/components/user-nav"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar"
+import { AdminSidebar } from "photostudio-shared/components/admin/admin-sidebar"
 
 type SidebarData = {
   navMain: {
@@ -67,42 +57,23 @@ function buildNavData(activePath: string | null): SidebarData {
   }
 }
 
-export function AppSidebar({
-  activePath = null,
-  ...props
-}: React.ComponentProps<typeof Sidebar> & { activePath?: string | null }) {
+type AppSidebarProps = Omit<
+  React.ComponentProps<typeof AdminSidebar>,
+  "headerTitle" | "headerSubtitle" | "headerIcon" | "navMain" | "navSecondary" | "footer"
+> & { activePath?: string | null }
+
+export function AppSidebar({ activePath = null, ...props }: AppSidebarProps) {
   const data = React.useMemo(() => buildNavData(activePath), [activePath])
 
   return (
-    <Sidebar
-      variant="sidebar"
-      // style={{ "--sidebar-width": "14rem" } as React.CSSProperties}
+    <AdminSidebar
+      headerTitle="Studio Manager"
+      headerSubtitle="Admin"
+      headerIcon={LayoutDashboard}
+      navMain={data.navMain}
+      navSecondary={data.navSecondary}
+      footer={<UserNav />}
       {...props}
-    >
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <div className="flex items-center gap-2">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <LayoutDashboard className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Studio Manager</span>
-                  <span className="truncate text-xs text-muted-foreground">Admin</span>
-                </div>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
-      </SidebarContent>
-      <SidebarFooter>
-        <UserNav />
-      </SidebarFooter>
-    </Sidebar>
+    />
   )
 }
