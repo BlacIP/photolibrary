@@ -94,7 +94,7 @@ importers:
         version: 0.4.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       photostudio-shared:
         specifier: github:BlacIP/photostudio-shared#main
-        version: https://codeload.github.com/BlacIP/photostudio-shared/tar.gz/3a47bb9fb7a18b3505c9c5c96e4a96be0b103235(@types/react-dom@18.3.1)(@types/react@18.3.12)(date-fns@3.6.0)(tailwindcss@3.4.14)
+        version: https://codeload.github.com/BlacIP/photostudio-shared/tar.gz/ad67845d0c41be90e32c57fc73567ce0fdd6d8a5(@types/react-dom@18.3.1)(@types/react@18.3.12)(date-fns@3.6.0)(tailwindcss@3.4.14)
       react:
         specifier: 18.3.1
         version: 18.3.1
@@ -3600,8 +3600,8 @@ packages:
   path-to-regexp@8.3.0:
     resolution: {integrity: sha512-7jdwVIRtsP8MYpdXSwOS0YdD0Du+qOoF/AEPIt88PcCFrZCzx41oxku1jD88hZBwbNUIEfpqvuhjFaMAqMTWnA==}
 
-  photostudio-shared@https://codeload.github.com/BlacIP/photostudio-shared/tar.gz/3a47bb9fb7a18b3505c9c5c96e4a96be0b103235:
-    resolution: {tarball: https://codeload.github.com/BlacIP/photostudio-shared/tar.gz/3a47bb9fb7a18b3505c9c5c96e4a96be0b103235}
+  photostudio-shared@https://codeload.github.com/BlacIP/photostudio-shared/tar.gz/ad67845d0c41be90e32c57fc73567ce0fdd6d8a5:
+    resolution: {tarball: https://codeload.github.com/BlacIP/photostudio-shared/tar.gz/ad67845d0c41be90e32c57fc73567ce0fdd6d8a5}
     version: 0.1.0
 
   picocolors@1.1.1:
@@ -8549,7 +8549,7 @@ snapshots:
 
   path-to-regexp@8.3.0: {}
 
-  photostudio-shared@https://codeload.github.com/BlacIP/photostudio-shared/tar.gz/3a47bb9fb7a18b3505c9c5c96e4a96be0b103235(@types/react-dom@18.3.1)(@types/react@18.3.12)(date-fns@3.6.0)(tailwindcss@3.4.14):
+  photostudio-shared@https://codeload.github.com/BlacIP/photostudio-shared/tar.gz/ad67845d0c41be90e32c57fc73567ce0fdd6d8a5(@types/react-dom@18.3.1)(@types/react@18.3.12)(date-fns@3.6.0)(tailwindcss@3.4.14):
     dependencies:
       '@radix-ui/react-accordion': 1.2.1(@types/react-dom@18.3.1)(@types/react@18.3.12)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-checkbox': 1.1.2(@types/react-dom@18.3.1)(@types/react@18.3.12)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
