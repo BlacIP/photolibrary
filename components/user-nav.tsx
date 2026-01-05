@@ -31,9 +31,13 @@ export function UserNav() {
   if (!mounted || !user) return null; // Avoid hydration mismatch
 
   const displayName = user.name || 'Admin';
-  const initials = user.name
-    ? user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
-    : user.email.substring(0, 2).toUpperCase();
+  const initialsSource = user.name || user.email;
+  const initials = initialsSource
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
 
   return (
     <SharedUserNav

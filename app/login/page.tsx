@@ -14,6 +14,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const promoBullets = [
+    'Seamless uploads to Cloudinary',
+    'Client-safe sharing and access control',
+    'Real-time storage insights',
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,18 +115,12 @@ export default function LoginPage() {
               </p>
             </div>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-primary" />
-                Seamless uploads to Cloudinary
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-primary" />
-                Client-safe sharing and access control
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-primary" />
-                Real-time storage insights
-              </div>
+              {promoBullets.map((bullet) => (
+                <div key={bullet} className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-primary" />
+                  {bullet}
+                </div>
+              ))}
             </div>
           </div>
         </div>

@@ -25,6 +25,8 @@ export default function AdminStudiosPage() {
   );
   const studios = Array.isArray(data) ? data : [];
   const loading = !data && !error;
+  const hasStudios = studios.length > 0;
+  const errorMessage = error?.message || "Unable to load studios.";
 
   const formatBytes = (bytes: number) => {
     if (!bytes) return "0 Bytes";
@@ -47,11 +49,12 @@ export default function AdminStudiosPage() {
         </div>
       </div>
 
-      {error ? (
+      {error && (
         <div className="rounded-lg border border-error-base/30 bg-error-base/10 px-4 py-3 text-sm text-error-base">
-          {error.message || "Unable to load studios."}
+          {errorMessage}
         </div>
-      ) : studios.length === 0 ? (
+      )}
+      {!error && !hasStudios && (
         <div className="rounded-xl border border-dashed border-stroke-soft-200 bg-bg-white-0 p-12 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-bg-weak-50">
             <RiBuildingLine className="text-text-sub-600" />
@@ -61,7 +64,8 @@ export default function AdminStudiosPage() {
             Studios register through the studio app. New studios will appear here.
           </p>
         </div>
-      ) : (
+      )}
+      {!error && hasStudios && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {studios.map((studio) => (
             <Link

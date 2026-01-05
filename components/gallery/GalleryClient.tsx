@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { RiCloseLine, RiDownloadLine } from '@remixicon/react';
 
 interface Photo {
@@ -41,6 +41,18 @@ export default function GalleryClient({ photos }: GalleryClientProps) {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
+  const hasPhotos = photos.length > 0;
+  const lastSlideIndex = photos.length - 1;
+  const showSlideshow = isSlideshow && hasPhotos;
+  const showEmptyState = !hasPhotos;
+
+  const goNextSlide = useCallback(() => {
+    setCurrentSlideIndex((prev) => (prev === lastSlideIndex ? 0 : prev + 1));
+  }, [lastSlideIndex]);
+
+  const goPreviousSlide = useCallback(() => {
+    setCurrentSlideIndex((prev) => (prev === 0 ? lastSlideIndex : prev - 1));
+  }, [lastSlideIndex]);
 
   const handleDownloadAll = async () => {
     setIsDownloading(true);
@@ -73,14 +85,14 @@ export default function GalleryClient({ photos }: GalleryClientProps) {
 
   // Auto-advance slideshow
   useEffect(() => {
-    if (!isSlideshow || !isPlaying || photos.length === 0) return;
+    if (!isSlideshow || !isPlaying || !hasPhotos) return;
 
     const timer = setInterval(() => {
-      setCurrentSlideIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
+      setCurrentSlideIndex((prev) => (prev === lastSlideIndex ? 0 : prev + 1));
     }, 5000); // 5 seconds
 
     return () => clearInterval(timer);
-  }, [isSlideshow, isPlaying, photos.length]);
+  }, [hasPhotos, isSlideshow, isPlaying, lastSlideIndex]);
 
   // Keyboard controls for slideshow
   useEffect(() => {
@@ -89,10 +101,10 @@ export default function GalleryClient({ photos }: GalleryClientProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       switch (e.key) {
         case 'ArrowLeft':
-          setCurrentSlideIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
+          goPreviousSlide();
           break;
         case 'ArrowRight':
-          setCurrentSlideIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
+          goNextSlide();
           break;
         case ' ':
           e.preventDefault();
@@ -107,7 +119,7 @@ export default function GalleryClient({ photos }: GalleryClientProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSlideshow, photos.length]);
+  }, [goNextSlide, goPreviousSlide, isSlideshow]);
 
   // Listen for slideshow event from hero button
   useEffect(() => {
@@ -124,7 +136,7 @@ export default function GalleryClient({ photos }: GalleryClientProps) {
   return (
     <>
       {/* Slideshow Modal */}
-      {isSlideshow && photos.length > 0 && (
+      {showSlideshow && (
         <div className="fixed inset-0 z-[100] bg-black flex flex-col">
           {/* Top Bar */}
           <div className="absolute top-0 left-0 right-0 z-[101] flex justify-between items-center p-4 bg-gradient-to-b from-black/80 to-transparent">
@@ -154,7 +166,7 @@ export default function GalleryClient({ photos }: GalleryClientProps) {
           {/* Bottom Controls */}
           <div className="absolute bottom-0 left-0 right-0 z-[101] flex justify-center items-center gap-4 p-6 bg-gradient-to-t from-black/80 to-transparent">
             <button
-              onClick={() => setCurrentSlideIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1))}
+              onClick={goPreviousSlide}
               className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
               title="Previous (←)"
             >
@@ -181,7 +193,7 @@ export default function GalleryClient({ photos }: GalleryClientProps) {
             </button>
 
             <button
-              onClick={() => setCurrentSlideIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1))}
+              onClick={goNextSlide}
               className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
               title="Next (→)"
             >
@@ -255,7 +267,7 @@ export default function GalleryClient({ photos }: GalleryClientProps) {
           ))}
         </div>
 
-        {photos.length === 0 && (
+        {showEmptyState && (
           <div className="py-20 text-center text-text-sub-600">
             <p>No photos have been uploaded to this gallery yet.</p>
           </div>

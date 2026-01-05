@@ -125,10 +125,43 @@ export default function GalleryPage({ params }: Props) {
     );
   }
 
+  const hasHeaderMedia = Boolean(client.header_media_url);
+  const formattedDate = client.event_date
+    ? new Date(client.event_date).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : '';
+  const downloadTitle = isDownloading ? 'Preparing download...' : 'Download All';
+  const downloadIcon = isDownloading ? (
+    <svg className="w-6 h-6 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+      />
+    </svg>
+  ) : (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+      />
+    </svg>
+  );
+  const openSlideshow = () => {
+    const event = new CustomEvent('openSlideshow');
+    window.dispatchEvent(event);
+  };
+
   return (
     <div className="min-h-screen bg-bg-white-0 pb-20">
       {/* Hero Header */}
-      {client.header_media_url ? (
+      {hasHeaderMedia ? (
         <div className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-bg-weak-50">
           {/* Overlay Header */}
           <Header className="absolute top-0 left-0 right-0 z-50 border-none bg-transparent text-white" />
@@ -157,11 +190,7 @@ export default function GalleryPage({ params }: Props) {
             </h1>
             {client.subheading && <p style={{ fontSize: 'clamp(1.125rem, 2.5vw, 1.5rem)' }} className="mt-4 text-white/90 max-w-3xl mx-auto whitespace-pre-wrap leading-relaxed">{client.subheading}</p>}
             <p style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.125rem)' }} className="mt-5 font-normal text-white/80">
-              {client.event_date && new Date(client.event_date).toLocaleDateString(undefined, {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              {formattedDate}
             </p>
             <div className="mt-8 flex flex-col items-center gap-4">
               <button
@@ -175,24 +204,12 @@ export default function GalleryPage({ params }: Props) {
                   onClick={handleDownloadAll}
                   disabled={isDownloading}
                   className="p-3 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors backdrop-blur-sm disabled:opacity-50"
-                  title={isDownloading ? "Preparing download..." : "Download All"}
+                  title={downloadTitle}
                 >
-                  {isDownloading ? (
-                    <svg className="w-6 h-6 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                  ) : (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                  )}
+                  {downloadIcon}
                 </button>
                 <button
-                  onClick={() => {
-                    // This will be handled by GalleryClient
-                    const event = new CustomEvent('openSlideshow');
-                    window.dispatchEvent(event);
-                  }}
+                  onClick={openSlideshow}
                   className="p-3 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors backdrop-blur-sm"
                   title="Play Slideshow"
                 >
@@ -214,11 +231,7 @@ export default function GalleryPage({ params }: Props) {
             </h1>
             {client.subheading && <p style={{ fontSize: 'clamp(1.125rem, 2.5vw, 1.5rem)' }} className="mt-4 text-text-sub-600 max-w-3xl mx-auto whitespace-pre-wrap leading-relaxed">{client.subheading}</p>}
             <p style={{ fontSize: 'clamp(0.875rem, 1.5vw, 1.125rem)' }} className="mt-5 font-normal text-text-sub-600">
-              {client.event_date && new Date(client.event_date).toLocaleDateString(undefined, {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              {formattedDate}
             </p>
             <div className="mt-6 flex flex-col items-center gap-4">
               <div className="flex gap-3">
@@ -226,23 +239,12 @@ export default function GalleryPage({ params }: Props) {
                   onClick={handleDownloadAll}
                   disabled={isDownloading}
                   className="p-3 bg-bg-white-0 hover:bg-bg-weak-50 rounded-lg text-text-strong-950 transition-colors shadow-sm border border-stroke-soft-200 disabled:opacity-50"
-                  title={isDownloading ? "Preparing download..." : "Download All"}
+                  title={downloadTitle}
                 >
-                  {isDownloading ? (
-                    <svg className="w-6 h-6 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                  ) : (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                  )}
+                  {downloadIcon}
                 </button>
                 <button
-                  onClick={() => {
-                    const event = new CustomEvent('openSlideshow');
-                    window.dispatchEvent(event);
-                  }}
+                  onClick={openSlideshow}
                   className="p-3 bg-bg-white-0 hover:bg-bg-weak-50 rounded-lg text-text-strong-950 transition-colors shadow-sm border border-stroke-soft-200"
                   title="Play Slideshow"
                 >

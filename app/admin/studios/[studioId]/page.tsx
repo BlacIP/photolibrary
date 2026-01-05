@@ -100,6 +100,8 @@ export default function StudioDetailPage() {
   const clients = Array.isArray(clientsData) ? clientsData : [];
   const loading = studioLoading || clientsLoading;
   const loadError = studioError || clientsError;
+  const hasOwners = owners.length > 0;
+  const hasClients = clients.length > 0;
 
   const updateStatus = async (status: string) => {
     if (!studio) return;
@@ -156,6 +158,9 @@ export default function StudioDetailPage() {
   const photoCount = Number(stats?.photo_count || 0);
   const storageBytes = Number(stats?.storage_bytes || 0);
   const clientCount = Number(stats?.client_count || 0);
+  const formattedCreatedAt = format(new Date(studio.created_at), "PPP");
+  const ownerCountLabel = `${owners.length} total`;
+  const clientCountLabel = `${clients.length} total`;
 
   return (
     <div className="w-full">
@@ -172,7 +177,7 @@ export default function StudioDetailPage() {
         <div>
           <h1 className="text-title-h4 font-bold text-text-strong-950">{studio.name}</h1>
           <p className="text-sm text-text-sub-600">
-            {studio.status} • {studio.plan} • Created {format(new Date(studio.created_at), "PPP")}
+            {studio.status} • {studio.plan} • Created {formattedCreatedAt}
           </p>
         </div>
 
@@ -233,9 +238,9 @@ export default function StudioDetailPage() {
       <div className="mb-8 rounded-xl border border-stroke-soft-200 bg-bg-white-0">
         <div className="flex items-center justify-between border-b border-stroke-soft-200 px-5 py-4">
           <h2 className="text-sm font-semibold text-text-strong-950">Studio owners</h2>
-          <span className="text-xs text-text-sub-600">{owners.length} total</span>
+          <span className="text-xs text-text-sub-600">{ownerCountLabel}</span>
         </div>
-        {owners.length === 0 ? (
+        {!hasOwners ? (
           <div className="p-6 text-sm text-text-sub-600">No owners recorded.</div>
         ) : (
           <div className="divide-y divide-stroke-soft-200">
@@ -264,9 +269,9 @@ export default function StudioDetailPage() {
       <div className="rounded-xl border border-stroke-soft-200 bg-bg-white-0">
         <div className="flex items-center justify-between border-b border-stroke-soft-200 px-5 py-4">
           <h2 className="text-sm font-semibold text-text-strong-950">Clients</h2>
-          <span className="text-xs text-text-sub-600">{clients.length} total</span>
+          <span className="text-xs text-text-sub-600">{clientCountLabel}</span>
         </div>
-        {clients.length === 0 ? (
+        {!hasClients ? (
           <div className="p-6 text-sm text-text-sub-600">No clients yet.</div>
         ) : (
           <div className="divide-y divide-stroke-soft-200">

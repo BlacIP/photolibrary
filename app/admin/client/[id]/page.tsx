@@ -353,11 +353,28 @@ export default function ClientDetailPage() {
         return url;
     };
 
-    if (isLoading && !client) return <div className="p-8 text-center">Loading...</div>;
-    if (error && !client) return <div className="p-8 text-center">Failed to load client.</div>;
+    const isInitialLoading = isLoading && !client;
+    const isLoadError = error && !client;
+
+    if (isInitialLoading) return <div className="p-8 text-center">Loading...</div>;
+    if (isLoadError) return <div className="p-8 text-center">Failed to load client.</div>;
     if (!client) return <div className="p-8 text-center">Client not found.</div>;
 
     const publicUrl = typeof window !== 'undefined' ? `${window.location.origin}/gallery/${client.slug}` : '';
+    const statusLabel = client.status || 'ACTIVE';
+    const statusClassMap: Record<string, string> = {
+        ARCHIVED: 'bg-orange-100 text-orange-700 border-orange-200',
+        DELETED: 'bg-red-100 text-red-700 border-red-200',
+        ACTIVE: 'bg-green-100 text-green-700 border-green-200',
+    };
+    const statusClass = statusClassMap[statusLabel] || statusClassMap.ACTIVE;
+    const hasValidDate = client.event_date && !isNaN(new Date(client.event_date).getTime());
+    const eventDateLabel = hasValidDate ? format(new Date(client.event_date), 'PPP') : 'Date not set';
+    const photoCount = client.photos.length;
+    const isArchived = client.status === 'ARCHIVED';
+    const isDeleted = client.status === 'DELETED';
+    const hasHeaderMedia = Boolean(headerMedia.url);
+    const hasPhotos = client.photos.length > 0;
 
     return (
         <div>
@@ -441,11 +458,8 @@ export default function ClientDetailPage() {
 
                     <div className="flex items-center gap-2">
                         {/* Status Badge */}
-                        <span className={`px-2 py-1 rounded text-xs font-medium border ${client.status === 'ARCHIVED' ? 'bg-orange-100 text-orange-700 border-orange-200' :
-                            client.status === 'DELETED' ? 'bg-red-100 text-red-700 border-red-200' :
-                                'bg-green-100 text-green-700 border-green-200'
-                            }`}>
-                            {client.status || 'ACTIVE'}
+                        <span className={`px-2 py-1 rounded text-xs font-medium border ${statusClass}`}>
+                            {statusLabel}
                         </span>
                     </div>
                 </div>
@@ -455,9 +469,7 @@ export default function ClientDetailPage() {
                         <h2 className="text-title-h3 font-bold text-text-strong-950">{client.name}</h2>
                         {client.subheading && <p className="text-lg text-text-sub-600 whitespace-pre-wrap">{client.subheading}</p>}
                         <p className="text-text-sub-600 mt-1">
-                            {client.event_date && !isNaN(new Date(client.event_date).getTime())
-                                ? format(new Date(client.event_date), 'PPP')
-                                : 'Date not set'} • {client.photos.length} Photos
+                            {eventDateLabel} • {photoCount} Photos
                         </p>
 
                         {/* Link Display */}
@@ -505,7 +517,7 @@ export default function ClientDetailPage() {
                                             Edit Details
                                         </DropdownMenu.Item>
 
-                                        {client.status !== 'ARCHIVED' ? (
+                                        {!isArchived ? (
                                             <DropdownMenu.Item
                                                 onClick={() => handleUpdateStatus('ARCHIVED')}
                                                 className="flex items-center gap-2 px-3 py-2 text-sm text-text-strong-950 rounded-md hover:bg-bg-weak-50 cursor-pointer outline-none"
@@ -523,7 +535,7 @@ export default function ClientDetailPage() {
                                             </DropdownMenu.Item>
                                         )}
 
-                                        {client.status !== 'DELETED' && (
+                                        {!isDeleted && (
                                             <DropdownMenu.Item
                                                 onClick={() => handleUpdateStatus('DELETED')}
                                                 className="flex items-center gap-2 px-3 py-2 text-sm text-error-base rounded-md hover:bg-error-weak-50 cursor-pointer outline-none"
@@ -545,7 +557,7 @@ export default function ClientDetailPage() {
                             Edit Details
                         </button>
 
-                        {client.status !== 'ARCHIVED' ? (
+                        {!isArchived ? (
                             <button
                                 onClick={() => handleUpdateStatus('ARCHIVED')}
                                 className="hidden md:block px-4 py-2 text-sm font-medium text-text-strong-950 bg-bg-white-0 border border-stroke-soft-200 rounded-lg hover:bg-bg-weak-50"
@@ -561,7 +573,7 @@ export default function ClientDetailPage() {
                             </button>
                         )}
 
-                        {client.status !== 'DELETED' && (
+                        {!isDeleted && (
                             <button
                                 onClick={() => handleUpdateStatus('DELETED')}
                                 className="hidden md:block px-4 py-2 text-sm font-medium text-error-base bg-bg-white-0 border border-stroke-soft-200 rounded-lg hover:bg-error-weak-50 hover:border-error-weak-200"
@@ -649,7 +661,7 @@ export default function ClientDetailPage() {
                         The header image appears at the top of the public gallery.
                     </p>
 
-                    {!headerMedia.url ? (
+                    {!hasHeaderMedia ? (
                         <div className="p-4 bg-bg-weak-50 rounded-lg border border-dashed border-stroke-soft-200 text-text-sub-600 text-sm">
                             <p>No header image set.</p>
                             <p className="mt-1 text-xs">Click the <RiStarLine className="inline mx-1 align-text-bottom text-text-strong-950" size={14} /> icon on any photo below to set it as the gallery header.</p>
@@ -667,7 +679,7 @@ export default function ClientDetailPage() {
                     )}
                 </div>
 
-                {headerMedia.url && (
+                {hasHeaderMedia && (
                     <div className="w-full md:w-64 aspect-video rounded-lg overflow-hidden bg-black relative border border-stroke-soft-200 shadow-sm">
                         {headerMedia.type === 'video' ? (
                             <video src={headerMedia.url} className="w-full h-full object-cover" controls />
@@ -701,7 +713,7 @@ export default function ClientDetailPage() {
             </Modal.Root>
 
             {
-                client.photos.length === 0 ? (
+                !hasPhotos ? (
                     <div className="flex h-64 flex-col items-center justify-center rounded-xl border border-dashed border-stroke-soft-200 bg-bg-white-0 text-center">
                         <RiUploadCloud2Line className="mb-4 text-text-sub-600" size={32} />
                         <p className="text-text-strong-950 font-medium">No photos yet</p>
