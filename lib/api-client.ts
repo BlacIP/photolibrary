@@ -11,49 +11,59 @@ export const getApiUrl = () => {
 };
 
 type RequestOptions = {
-    method?: string;
-    headers?: Record<string, string>;
-    body?: any;
-    credentials?: RequestCredentials;
+  method?: string;
+  headers?: Record<string, string>;
+  body?: unknown;
+  credentials?: RequestCredentials;
 };
 
-export async function fetchApi(endpoint: string, options: RequestOptions = {}) {
-    const { method = 'GET', headers = {}, body, credentials = 'include' } = options;
+export async function fetchApi<TResponse = unknown>(
+  endpoint: string,
+  options: RequestOptions = {}
+): Promise<TResponse> {
+  const { method = 'GET', headers = {}, body, credentials = 'include' } = options;
 
     // Get API URL dynamically at runtime (not at module load time)
     const API_URL = getApiUrl();
 
-    const config: RequestInit = {
-        method,
-        headers: {
-            'Content-Type': 'application/json',
-            ...headers,
-        },
-        credentials,
-    };
+  const config: RequestInit = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...headers,
+    },
+    credentials,
+  };
 
-    if (body) {
-        config.body = JSON.stringify(body);
-    }
+  if (body) {
+    config.body = JSON.stringify(body);
+  }
 
     // Ensure endpoint starts with / if not present
-    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
-    const response = await fetch(`${API_URL}${normalizedEndpoint}`, config);
+  const response = await fetch(`${API_URL}${normalizedEndpoint}`, config);
 
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || errorData.message || 'API Request Failed');
-    }
+  if (!response.ok) {
+    const errorData = (await response.json().catch(() => ({}))) as {
+      error?: string;
+      message?: string;
+    };
+    throw new Error(errorData.error || errorData.message || 'API Request Failed');
+  }
 
-    return response.json();
+  return response.json() as Promise<TResponse>;
 }
 
 // Client-side helper methods
 export const api = {
-    get: (endpoint: string) => fetchApi(endpoint, { method: 'GET' }),
-    post: (endpoint: string, body: any) => fetchApi(endpoint, { method: 'POST', body }),
-    put: (endpoint: string, body: any) => fetchApi(endpoint, { method: 'PUT', body }),
-    patch: (endpoint: string, body: any) => fetchApi(endpoint, { method: 'PATCH', body }),
-    delete: (endpoint: string) => fetchApi(endpoint, { method: 'DELETE' }),
+  get: <TResponse = unknown>(endpoint: string) => fetchApi<TResponse>(endpoint, { method: 'GET' }),
+  post: <TResponse = unknown, TBody = unknown>(endpoint: string, body: TBody) =>
+    fetchApi<TResponse>(endpoint, { method: 'POST', body }),
+  put: <TResponse = unknown, TBody = unknown>(endpoint: string, body: TBody) =>
+    fetchApi<TResponse>(endpoint, { method: 'PUT', body }),
+  patch: <TResponse = unknown, TBody = unknown>(endpoint: string, body: TBody) =>
+    fetchApi<TResponse>(endpoint, { method: 'PATCH', body }),
+  delete: <TResponse = unknown>(endpoint: string) =>
+    fetchApi<TResponse>(endpoint, { method: 'DELETE' }),
 };

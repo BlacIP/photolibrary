@@ -29,9 +29,10 @@ export default function LoginPage() {
       await api.post('auth/login', { email, password });
       router.push('/admin');
       router.refresh();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || 'An error occurred. Please try again.');
+      const message = err instanceof Error ? err.message : 'An error occurred. Please try again.';
+      setError(message);
     } finally {
       setLoading(false);
     }

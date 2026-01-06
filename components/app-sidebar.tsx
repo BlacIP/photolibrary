@@ -6,6 +6,7 @@ import {
   Settings,
   HelpCircle,
   Building2,
+  type LucideIcon,
 } from "lucide-react"
 
 import { UserNav } from "@/components/user-nav"
@@ -15,13 +16,13 @@ type SidebarData = {
   navMain: {
     title: string
     url: string
-    icon: any
+    icon: LucideIcon
     isActive?: boolean
   }[]
   navSecondary: {
     title: string
     url: string
-    icon: any
+    icon: LucideIcon
   }[]
 }
 
