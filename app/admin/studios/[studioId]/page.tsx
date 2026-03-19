@@ -25,22 +25,13 @@ export default function StudioDetailPage() {
     { refreshInterval: 120_000 },
     { ttlMs: 120_000 }
   );
-  const {
-    data: clientsData,
-    error: clientsError,
-    isLoading: clientsLoading,
-  } = useCachedSWR<StudioClient[]>(
-    studioId ? `admin/studios/${studioId}/clients` : null,
-    { refreshInterval: 120_000 },
-    { ttlMs: 120_000 }
-  );
 
   const studio = studioData?.studio ?? null;
   const stats = studioData?.stats ?? null;
   const owners = Array.isArray(studioData?.owners) ? studioData?.owners : [];
-  const clients = Array.isArray(clientsData) ? clientsData : [];
-  const loading = studioLoading || clientsLoading;
-  const loadError = studioError || clientsError;
+  const clients = Array.isArray(studioData?.clients) ? studioData.clients : [];
+  const loading = studioLoading;
+  const loadError = studioError;
 
   const { updatingStatus, updateStatus } = useStudioStatus({
     studio,

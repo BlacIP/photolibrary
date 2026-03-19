@@ -28,10 +28,8 @@ export function useLifecycleClients(active: boolean) {
     )
       return;
     try {
-      // TODO: Implement lifecycle endpoint in backend
-      // await api.post('admin/lifecycle/cleanup');
-      // alert('Cleanup completed');
-      // fetchClients();
+      await api.post('admin/lifecycle/cleanup', {});
+      await fetchClients();
     } catch (e) {
       console.error(e);
     }

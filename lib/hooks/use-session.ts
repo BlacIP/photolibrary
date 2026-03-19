@@ -56,9 +56,15 @@ type UseSessionOptions = {
 
 export function useSession(options: UseSessionOptions = {}) {
   const { requireFresh = false } = options;
-  const [fallback] = useState<SessionUser | undefined>(() => readSessionCache() ?? undefined);
+  const [fallback, setFallback] = useState<SessionUser | undefined>(undefined);
+  const [ready, setReady] = useState(false);
 
-  const swr = useSWR<SessionUser>('auth/me', {
+  useEffect(() => {
+    setFallback(readSessionCache() ?? undefined);
+    setReady(true);
+  }, []);
+
+  const swr = useSWR<SessionUser>(ready ? 'auth/me' : null, {
     fallbackData: fallback,
     revalidateOnMount: requireFresh || !fallback,
   });
@@ -69,5 +75,10 @@ export function useSession(options: UseSessionOptions = {}) {
     }
   }, [swr.data]);
 
-  return swr;
+  return {
+    ...swr,
+    data: swr.data ?? fallback,
+    isLoading: !ready || swr.isLoading,
+    isValidating: !ready || swr.isValidating,
+  };
 }

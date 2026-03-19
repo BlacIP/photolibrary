@@ -53,27 +53,20 @@ export function useCachedSWR<T>(
   cacheOptions: CacheOptions = {},
 ): SWRResponse<T> {
   const storageKey = useMemo(() => cacheOptions.storageKey ?? key ?? '', [cacheOptions.storageKey, key]);
-  const [fallback, setFallback] = useState<T | undefined>(() => {
-    if (!storageKey) return undefined;
-    return readCache<T>(storageKey, cacheOptions.ttlMs);
-  });
-  const [ready, setReady] = useState(() => !storageKey || key === null || fallback !== undefined);
+  const [fallback, setFallback] = useState<T | undefined>(undefined);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!storageKey) {
+      setFallback(undefined);
       setReady(true);
       return;
     }
-    if (fallback !== undefined) {
-      setReady(true);
-      return;
-    }
+
     const cached = readCache<T>(storageKey, cacheOptions.ttlMs);
-    if (cached !== undefined) {
-      setFallback(cached);
-    }
+    setFallback(cached);
     setReady(true);
-  }, [storageKey, fallback, cacheOptions.ttlMs]);
+  }, [storageKey, cacheOptions.ttlMs]);
 
   const swr = useSWR<T>(ready && key ? key : null, {
     ...config,

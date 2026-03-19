@@ -39,4 +39,5 @@ export type StudioDetailResponse = {
   studio: Studio;
   stats: StudioStats;
   owners: StudioOwner[];
+  clients: StudioClient[];
 };
