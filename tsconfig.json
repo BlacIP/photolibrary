@@ -19,6 +19,7 @@
       }
     ],
     "paths": {
+      "@/components/ui/*": ["./components/ui/*", "./node_modules/photostudio-shared/components/ui/*"],
       "@/*": ["./*"]
     }
   },
