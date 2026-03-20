@@ -42,3 +42,6 @@ next-env.d.ts
 
 .codex
 SKILLS.md
+/codex-ui-overlay
+/__codex-ui-overlay
+.codex-ui-overlay.json

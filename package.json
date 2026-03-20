@@ -68,6 +68,7 @@
     "shadcn": "^3.6.2",
     "tailwindcss": "^3.4.14",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5"
+    "typescript": "^5",
+    "uiloop": "^0.1.1"
   }
 }
